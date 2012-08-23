@@ -1,0 +1,51 @@
+variant debug_openmp : debug
+    : <cxxflags>-fopenmp <linkflags>-fopenmp <define>USING_OPENMP ;
+
+variant release_openmp : release
+	: <cxxflags>-fopenmp <linkflags>-fopenmp <define>USING_OPENMP ;
+
+variant debug_tbb : debug
+  : <define>USING_TBB <linkflags>-ltbb ;
+
+variant release_tbb : release
+  : <define>USING_TBB <linkflags>-ltbb ;
+
+
+constant platform : [ SHELL "uname" ] ;
+
+# Strip the trailing newline / whatever
+switch $(platform)
+{
+	case "Darwin*" : platform = "Darwin" ;
+	case "Linux*" : platform = "Linux" ;
+	case "*" : echo "running on other" ;
+}
+
+if $(platform) = "Darwin" {
+	ECHO "Compiling on OS X" ;
+	constant LIB_EXT : dylib ;
+	constant PYUBLAS_INC_DIR : /Users/malc/opt/py/pyublas/src/cpp ;
+	constant PY_SITE_PACK_DIR : "/epd64/Versions/Current/lib/python2.7/site-packages" ;
+	constant BOOST_LIB_DIR : /opt/local/lib ;
+	constant BOOST_SRC_DIR : /Users/malc/opt/boost/boost-trunk ;
+	constant BOOST_INC_DIR : /opt/local/include ;
+}
+else if $(platform) = "Linux" {
+	ECHO "Compiling on Linux" ;
+	constant LIB_EXT : so ;
+	constant PYUBLAS_INC_DIR : /home/malc/opt/pyublas/src/cpp ;
+	constant PY_SITE_PACK_DIR : "/opt/epd/lib/python2.7/site-packages" ;
+	constant BOOST_LIB_DIR : /usr/local/lib ;
+	constant BOOST_SRC_DIR : /home/malc/opt/boost/boost ;
+	constant BOOST_INC_DIR : /usr/local/include ;
+}
+else {
+	EXIT "ERROR! unsupported platform" ;
+}
+
+
+use-project boost
+  : $(BOOST_SRC_DIR) ;
+
+build-project src ;
+build-project bindings ;

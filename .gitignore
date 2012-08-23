@@ -1,0 +1,12 @@
+*.o
+*.dylib
+*.so
+*.pyc
+.DS_Store
+bin/
+*.prof
+
+test/reg_test
+test/shared_test
+test/test
+
