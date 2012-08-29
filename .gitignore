@@ -1,6 +1,7 @@
 *.o
 *.dylib
 *.so
+*.so.*
 *.pyc
 .DS_Store
 bin/
