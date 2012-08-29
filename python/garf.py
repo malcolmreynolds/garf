@@ -44,6 +44,13 @@ all_trees = [RegressionTreePrwsSingCtF,
 # underlying native function
 
 
+def any_nan(vals):
+    '''Determines if any of the values in a thing are NaN'''
+    if np.isnan(vals).sum() > 0:
+        return True
+    return False
+
+
 def resample_labels(x, y, num_bins, debug=False):
     if debug:
         import matplotlib.pyplot as plt
@@ -103,6 +110,12 @@ def train_wrapper(self, features, labels,
                   resample_hist_bins=False, debug=True,
                   remove_zeros=False):
     # print "x.dtype=%s y.dtype=%s" % (x.dtype, y.dtype)
+
+    if any_nan(features):
+        raise ValueError('features contain NaN')
+
+    if any_nan(labels):
+        raise ValueError('labels contain NaN')
 
     # If we are resampling then we need to calculate the range of the labels
     # and then sample evenly from each of these bins
