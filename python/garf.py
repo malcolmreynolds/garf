@@ -112,10 +112,11 @@ def train_wrapper(self, features, labels,
     # print "x.dtype=%s y.dtype=%s" % (x.dtype, y.dtype)
 
     if any_nan(features):
-        raise ValueError('features contain NaN')
-
+        raise ValueError('training features contain NaN')
     if any_nan(labels):
-        raise ValueError('labels contain NaN')
+        raise ValueError('training labels contain NaN')
+
+    print "no NaNs detected at training"
 
     # If we are resampling then we need to calculate the range of the labels
     # and then sample evenly from each of these bins
@@ -167,6 +168,10 @@ def predict_wrapper(self, features,
     max_depth has a default which will predict all the way down each tree.
     If desired, can be set to any non-negative integer to limit the predict
     function."""
+
+    if any_nan(features):
+        raise ValueError('test features contain NaN')
+    print "No NANs detected at testing"
 
     # I know that in python you should never use isinstance... however, if we
     # don't and the user passes something wrong then we get a type exception from boost.python

@@ -38,6 +38,7 @@ else if $(platform) = "Linux" {
 	constant BOOST_LIB_DIR : /usr/local/lib ;
 	constant BOOST_SRC_DIR : /home/malc/opt/boost/boost ;
 	constant BOOST_INC_DIR : /usr/local/include ;
+	constant TBB_ROOT : /usr/local/include ;
 }
 else {
 	EXIT "ERROR! unsupported platform" ;
