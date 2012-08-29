@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cam3dutils.plot_cam as pc
 import garf
-import yep
 
 
 def plot_error_bar_results(ax, x, y_mu, y_var, name, sqrt=True, alpha=0.5):
@@ -52,16 +51,12 @@ params = garf.make_params({'max_num_trees': 30,
                            'max_tree_depth': 6,
                            'num_splits_to_try': 20,
                            'balance_bias': 0.0})
-yep.start('hyp.prof')
 forest_hyp = garf.RegressionForestFltSmrtHyp(params)
 forest_hyp.train(x, y)
-yep.stop()
 
 
-yep.start('ax.prof')
 forest_ax = garf.RegressionForestFlt(params)
 forest_ax.train(x, y)
-yep.stop()
 
 v = 10
 test_x1, test_x2 = np.meshgrid(np.linspace(x[:, 0].min() - v,
