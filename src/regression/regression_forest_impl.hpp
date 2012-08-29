@@ -283,7 +283,8 @@ namespace garf {
         const feature_idx_t output_dimensions = outputs_per_tree_mean.size2();
     
         for (feature_idx_t i = 0; i < output_dimensions; i++) {
-            LabelT mu_n, mu_n_minus_1 = 0.0; // mean, mean at previous iteration
+            LabelT mu_n = 0.0;
+            LabelT mu_n_minus_1 = 0.0; // mean, mean at previous iteration
 
             LabelT sum_x_sq = 0.0; // um of all data squared - to calculate variances
 
@@ -323,8 +324,10 @@ namespace garf {
 
      
         for (feature_idx_t i = 0; i < output_dimensions; i++) {
-            LabelT mu_n, mu_n_minus_1 = 0.0; // these two variables used to calculate mean
-            LabelT s_n, s_n_minus_1 = 0.0; // these used for variance
+            LabelT mu_n = 0.0;
+            LabelT mu_n_minus_1 = 0.0; // these two variables used to calculate mean
+            LabelT s_n = 0.0;
+            LabelT s_n_minus_1 = 0.0; // these used for variance
 
             LabelT v_i; // current variance
             LabelT w_i, w_sum = 0; // Current weight (precision) and sum of all weights up to now
