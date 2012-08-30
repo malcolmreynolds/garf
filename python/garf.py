@@ -44,11 +44,11 @@ all_trees = [RegressionTreePrwsSingCtF,
 # underlying native function
 
 
-def any_nan(vals):
-    '''Determines if any of the values in a thing are NaN'''
-    if np.isnan(vals).sum() > 0:
-        return True
-    return False
+def any_invalid_numbers(vals):
+    '''Determines if any of the values in a thing are NaN or +/- inf'''
+    if np.all(np.isfinite(vals)):
+        return False
+    return True
 
 
 def resample_labels(x, y, num_bins, debug=False):
@@ -111,12 +111,12 @@ def train_wrapper(self, features, labels,
                   remove_zeros=False):
     # print "x.dtype=%s y.dtype=%s" % (x.dtype, y.dtype)
 
-    if any_nan(features):
-        raise ValueError('training features contain NaN')
-    if any_nan(labels):
-        raise ValueError('training labels contain NaN')
+    if any_invalid_numbers(features):
+        raise ValueError('training features contain NaN or infinity')
+    if any_invalid_numbers(labels):
+        raise ValueError('training labels contain NaN or infinity')
 
-    print "no NaNs detected at training"
+    print "no invalid values detected at training"
 
     # If we are resampling then we need to calculate the range of the labels
     # and then sample evenly from each of these bins
@@ -169,8 +169,8 @@ def predict_wrapper(self, features,
     If desired, can be set to any non-negative integer to limit the predict
     function."""
 
-    if any_nan(features):
-        raise ValueError('test features contain NaN')
+    if any_invalid_numbers(features):
+        raise ValueError('test features contain NaN or +/- inf')
     print "No NANs detected at testing"
 
     # I know that in python you should never use isinstance... however, if we
