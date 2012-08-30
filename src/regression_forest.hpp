@@ -89,9 +89,9 @@ namespace garf {
 
         // Constructor with custom parameters
         regression_forest(regression_forest_params params);
-#ifdef VERBOSE
+// #ifdef VERBOSE
         inline ~regression_forest() { std::cout << "~regression_forest()" << std::endl; };
-#endif
+// #endif
 
         // Train the forest given some training set
         void train(boost::shared_ptr<const supervised_training_set<FeatT, LabelT> > training_set);

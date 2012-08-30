@@ -216,7 +216,9 @@ namespace garf {
         // Now do the recurrence relation
         for (uint32_t k=1; k < num_data_points; k++) {
             training_set_idx_t data_idx = *valid_indices_it++;
+#ifdef WITH_ITERATORS
             matrix_row<const typename garf_types<FeatT>::matrix> current_data_row(data, data_idx);
+#endif
             // std::cout << "k=" << k << " data_idx = " << data_idx << std::endl;
             // The values we've already calculated are now the "k minus 1"'th
             // values, so copy the values over

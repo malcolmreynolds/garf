@@ -208,6 +208,10 @@ def predict_wrapper(self, features,
         return (output_labels, output_var)
 
 
+def del_wrapper(self):
+    print "deleting %s" % self
+
+
 def check_for_negative_variance_wrapper(self, var):
     print "checking for negative variance..."
     negatives = (var < 0.0)
@@ -229,6 +233,7 @@ for forest in all_forests:
     forest.predict = predict_wrapper
     forest.all_trees = all_trees_wrapper
     forest.check_for_negative_variance = check_for_negative_variance_wrapper
+    forest.__del__ = del_wrapper
 
 
 def get_node_wrapper(self, node_idx):
