@@ -5,6 +5,8 @@ namespace garf {
 
 
 #ifdef USING_TBB
+
+    #error "TBB CAUSES SEEEERIOUS BUGS DONT USE IT"
     // This is the helper class that we rely on if Thread Buildin Blocks is 
     // enabled. No point compiling it otherwise, hence ifdef guard.
 
@@ -79,6 +81,7 @@ namespace garf {
         time(&start);
 
 #ifdef USING_OPENMP 
+        #error "using OpenMP causes serious bugs, don't use it"
         #pragma omp parallel for
         for (tree_idx_t i=0; i < _params._max_num_trees; i++) {
 #ifdef VERBOSE            
