@@ -46,10 +46,8 @@ BOOST_PYTHON_MODULE(_garf) {
 
 #define EXPOSE_MVN(FEATT, SUFFIX) \
     class_<multivariate_normal<FEATT> >("MVNormal" SUFFIX, no_init) \
-        .add_property("mu", &multivariate_normal<FEATT>::mu) \
-        .add_property("sigma", &multivariate_normal<FEATT>::sigma)
-        // .def(pyublas::by_value_ro_member("mu", &multivariate_normal<FEATT>::mu))  \
-        // .def(pyublas::by_value_ro_member("sigma", &multivariate_normal<FEATT>::sigma))
+        .def(pyublas::by_value_ro_member("mu", &multivariate_normal<FEATT>::mu))  \
+        .def(pyublas::by_value_ro_member("sigma", &multivariate_normal<FEATT>::sigma))
         
     EXPOSE_MVN(double, "D");
     EXPOSE_MVN(float, "F");
