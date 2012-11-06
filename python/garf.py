@@ -39,6 +39,16 @@ all_trees = [RegressionTreePrwsSingCtF,
                RegressionTreeFltSingDoub,
                RegressionTreeFlt]
 
+forests_axis_aligned = [
+    RegressionForestFlt,
+    RegressionForest
+]
+
+trees_axis_aligned = [
+    RegressionTreeFlt,
+    RegressionTree
+]
+
 # The C++ functions for _train and _predict aren't that flexible, so we have
 # python wrappers here which add more customizability and then call the
 # underlying native function
@@ -188,7 +198,12 @@ def predict_wrapper(self, features,
         trees_to_predict_with = self.stats.num_trees
 
     label_dims = self.stats.label_dimensionality
-    num_samples = features.shape[0]
+    num_samples, feature_dimensionality = features.shape
+    if feature_dimensionality != self.stats.feature_dimensionality:
+        raise ValueError("asked to predict on %d dimensional data but forest was trained on %d dimensions"
+            % (feature_dimensionality, self.stats.feature_dimensionality))
+    else:
+        print "supplied with %d dimensional features which matches forest" % feature_dimensionality
 
     output_labels = np.zeros((num_samples, label_dims), dtype=np.float32)
     output_var = np.zeros_like(output_labels)
@@ -226,6 +241,27 @@ def all_trees_wrapper(self):
     for i in xrange(num_trees):
         yield self.get_tree(i)
 
+
+def tree_importance_axis_aligned(self):
+    '''FIXME: could do this better by adding a method to the splitfinder class
+    so that (eg) the hyperplane one could return something different. As it is
+    this only works for axis aligned'''
+    feat_indices = [n.split.feature for n in self.all_internal()]
+    return feat_indices
+
+
+def forest_importance_axis_aligned(self):
+    import ipdb; ipdb.set_trace()
+    features_chosen_per_tree = [t.importance() for t in self.all_trees()]
+
+    # Need one level of flatten
+    features_chosen_per_tree = sum(features_chosen_per_tree, [])
+
+    # Bincount to get the importance. Make sure we pad it out.
+    return np.bincount(features_chosen_per_tree,
+                       minlength=self.stats.feature_dimensionality)
+
+
 # Add our new python functions to the relevant forests (this will happen when
 # "import garf" is typed).
 for forest in all_forests:
@@ -234,6 +270,9 @@ for forest in all_forests:
     forest.all_trees = all_trees_wrapper
     forest.check_for_negative_variance = check_for_negative_variance_wrapper
     forest.__del__ = del_wrapper
+
+for forest in forests_axis_aligned:
+    forest.importance = forest_importance_axis_aligned
 
 
 def get_node_wrapper(self, node_idx):
@@ -294,6 +333,9 @@ for tree in all_trees:
     tree.all_nodes = all_nodes
     tree.all_leaves = all_leaves
     tree.all_internal = all_internal
+
+for tree in trees_axis_aligned:
+    tree.importance = tree_importance_axis_aligned
 
 print "python wrappers added to C++ objects..."
 

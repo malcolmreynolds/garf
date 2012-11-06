@@ -102,8 +102,11 @@ namespace garf {
         //Evaluate each datapoint against each hyperplane
         typename garf_types<FeatT>::matrix feature_values(this->_num_training_samples, this->num_splits_to_try());
         calculate_all_features(feature_indices, plane_coeffs, feature_values);
+
+
 #ifdef VERBOSE
         std::cout << "Evaluated all features:" << std::endl;
+
         print_matrix<FeatT>(std::cout, feature_values);
 #endif
 

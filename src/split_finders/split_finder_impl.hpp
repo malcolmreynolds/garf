@@ -61,7 +61,7 @@ namespace garf {
                                                           boost::random::mt19937& gen) const {
         for (uint32_t feat_idx = 0; feat_idx < this->_num_splits_to_try; feat_idx++) {
     #ifdef VERBOSE        
-            std::cout << "generating threshes between " << feature_mins(feat_idx) << " and " << feature_maxs(feat_idx) << std::endl;
+            std::cout << "#" << feat_idx << " generating threshes between " << feature_mins(feat_idx) << " and " << feature_maxs(feat_idx) << std::endl;
     #endif
 
             // if there is no variation in the feature then the random sampler gets caught in an endless loop.. 
@@ -291,12 +291,21 @@ namespace garf {
         typename garf_types<FeatT>::vector feature_maxs(this->_num_splits_to_try);
         this->calculate_mins_and_maxs(feature_values, feature_mins, feature_maxs);
 
+#ifdef VERBOSE
+        std::cout << "minx and maxs calculated" << std::endl;
+        std::cout << "mins: " << feature_mins << std::endl;
+        std::cout << "maxs: " << feature_maxs << std::endl;
+#endif
+
         // Generate some thresholds in the above ranges
         typename garf_types<FeatT>::matrix thresholds(this->_num_splits_to_try, this->_num_threshes_per_split);
         this->generate_thresholds(feature_mins, feature_maxs, thresholds, gen);
 #ifdef VERBOSE
         std::cout << "thresholds = " << thresholds << std::endl;
+        std::cout << "calculating information gains" << std::endl;
 #endif
+
+
 
         // Work out which of our candidate splits gives the best information gain.
         return this->calculate_information_gains(thresholds, feature_values,
