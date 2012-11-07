@@ -242,7 +242,7 @@ def all_trees_wrapper(self):
         yield self.get_tree(i)
 
 
-def tree_importance_axis_aligned(self):
+def tree_feature_frequency_axis_aligned(self):
     '''FIXME: could do this better by adding a method to the splitfinder class
     so that (eg) the hyperplane one could return something different. As it is
     this only works for axis aligned'''
@@ -250,13 +250,13 @@ def tree_importance_axis_aligned(self):
     return feat_indices
 
 
-def forest_importance_axis_aligned(self):
-    features_chosen_per_tree = [t.importance() for t in self.all_trees()]
+def forest_feature_frequency_axis_aligned(self):
+    features_chosen_per_tree = [t.feature_frequency() for t in self.all_trees()]
 
     # Need one level of flatten
     features_chosen_per_tree = sum(features_chosen_per_tree, [])
 
-    # Bincount to get the importance. Make sure we pad it out.
+    # Bincount to get the frequency. Make sure we pad it out.
     return np.bincount(features_chosen_per_tree,
                        minlength=self.stats.feature_dimensionality)
 
@@ -271,7 +271,7 @@ for forest in all_forests:
     forest.__del__ = del_wrapper
 
 for forest in forests_axis_aligned:
-    forest.importance = forest_importance_axis_aligned
+    forest.feature_frequency = forest_feature_frequency_axis_aligned
 
 
 def get_node_wrapper(self, node_idx):
@@ -334,7 +334,7 @@ for tree in all_trees:
     tree.all_internal = all_internal
 
 for tree in trees_axis_aligned:
-    tree.importance = tree_importance_axis_aligned
+    tree.feature_frequency = tree_feature_frequency_axis_aligned
 
 print "python wrappers added to C++ objects..."
 
