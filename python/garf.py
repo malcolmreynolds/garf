@@ -251,7 +251,6 @@ def tree_importance_axis_aligned(self):
 
 
 def forest_importance_axis_aligned(self):
-    import ipdb; ipdb.set_trace()
     features_chosen_per_tree = [t.importance() for t in self.all_trees()]
 
     # Need one level of flatten
