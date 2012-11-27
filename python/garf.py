@@ -281,7 +281,33 @@ def get_node_wrapper(self, node_idx):
     except AttributeError:
         # We haven't generate the index yet.
         self.make_node_cache()
+        self.make_parent_lookup()
     return self.node_cache[node_idx]
+
+
+def get_node_path_wrapper(self, node):
+    """Given a tree and 'node', returns a list of all nodes from
+    root up to and including 'node'"""
+    lst = [node]
+
+    still_ascending = True
+    while still_ascending:
+        try:
+            parent = self.get_node(self.parents[lst[-1].node_id])
+            lst.append(parent)
+        except KeyError:
+            # node didn't exist in self.parents, so must be root
+            still_ascending = False
+        except AttributeError:
+            # self.parents doesn't exist - need to make lookups now. Then
+            # hopefully the for loop will bring us back to where we want
+            # to be and there is no need to print an error message
+            self.make_node_cache()
+            self.make_parent_lookup()
+    # Most of the uses I have for this I'll want to convert to a list
+    # as soon as the function returns, so might as well stop it
+    # being an iterator straight away
+    return list(reversed(lst))
 
 
 def make_node_cache_wrapper(self):
@@ -289,6 +315,23 @@ def make_node_cache_wrapper(self):
     self.node_cache = {}
     for node in self.all_nodes():
         self.node_cache[node.node_id] = node
+
+
+def make_parent_lookup_wrapper(self):
+    """Builds a dict which points from each non-root node
+    to its parent. This, in conjuction with the node_cache,
+    allows us to traverse around the tree easily (ish)"""
+    self.parents = {}
+    nodes_to_visit = [self.root]
+    while nodes_to_visit:
+        n = nodes_to_visit.pop()
+        if n.is_leaf():
+            continue
+        nodes_to_visit.append(n.l)
+        nodes_to_visit.append(n.r)
+        parent_id = n.node_id
+        self.parents[n.l.node_id] = parent_id
+        self.parents[n.r.node_id] = parent_id
 
 
 def all_nodes(self):
@@ -328,7 +371,9 @@ def all_internal(self):
 # Add a function to examine trees
 for tree in all_trees:
     tree.make_node_cache = make_node_cache_wrapper
+    tree.make_parent_lookup = make_parent_lookup_wrapper
     tree.get_node = get_node_wrapper
+    tree.get_node_path = get_node_path_wrapper
     tree.all_nodes = all_nodes
     tree.all_leaves = all_leaves
     tree.all_internal = all_internal
