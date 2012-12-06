@@ -98,11 +98,22 @@ namespace garf {
             return;
         }    
       
-// #ifdef VERBOSE
+        // New test! If the best split we can come up with doesn't have > min samples in BOTH
+        // branches, then we assume we have started overfitting, and bomb out early
+        int num_going_left = samples_going_left->size();
+        int num_going_right = samples_going_right->size();
+
+        if ((num_going_left < params->_min_sample_count) ||
+            (num_going_right < params->_min_sample_count)) {
+            std::cout << "regression_node::train() id = (" << _tree->tree_id() << "," << this->node_id()
+                << "): stopping overfitting, best split would have been (" << num_going_left << "/"
+                << num_going_right << ")" << std::endl;
+            return;
+        }
+
         std::cout << "regression_node::train() id = (" << _tree->tree_id() << "," << this->node_id() 
-            << "): " << this->num_samples_landing_here() << " -> " << samples_going_left->size() << " / "
-            << samples_going_right->size() << std::endl;
-// #endif
+            << "): " << this->num_samples_landing_here() << " -> " << num_going_left << " / "
+            << num_going_right << std::endl;
 
         // Create the two children and train recursively
         _left.reset(new regression_node<FeatT, LabelT, SplitT>(this, _tree));
