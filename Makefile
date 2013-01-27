@@ -16,7 +16,8 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 
 # Google logging
-# LOG_LIBS = ''
+LDFLAGS += '-lglog'
+
 
 
 
@@ -54,5 +55,5 @@ objs/gaussian_tests.o : tests/gaussian_tests.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I. -c tests/gaussian_tests.cpp -o objs/gaussian_tests.o
 
 bin/gaussian_tests : objs/gaussian_tests.o bin/gtest.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lglog $^ -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $(LDFLAGS) $^ -o $@
 
