@@ -4,6 +4,7 @@
 *.so.*
 *.pyc
 .DS_Store
+objs/
 bin/
 *.prof
 .sconsign.dblite

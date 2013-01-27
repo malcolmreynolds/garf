@@ -1,3 +1,6 @@
+#ifndef GARF_MULTI_DIM_GAUSSIAN_HPP
+#define GARF_MULTI_DIM_GAUSSIAN_HPP
+
 #include <iostream>
 #include <stdexcept>
 #include <Eigen/Dense>
@@ -170,3 +173,5 @@ namespace garf {
         }
     };
 }
+
+#endif

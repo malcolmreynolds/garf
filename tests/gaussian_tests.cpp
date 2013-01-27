@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+// #include <glog/logging.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -11,8 +12,6 @@ using Eigen::Vector3d;
 using Eigen::VectorXd;
 using Eigen::Matrix3d;
 using Eigen::MatrixXd;
-
-
 
 #include "garf/util/multi_dim_gaussian.hpp"
 
@@ -29,10 +28,13 @@ TEST(MDGTest, HelloWorld) {
     EXPECT_NEAR(mdg.mean(0), -0.3270989, tol);
     EXPECT_NEAR(mdg.mean(1), -0.261182, tol);
     EXPECT_NEAR(mdg.mean(2), 0.258454, tol);
+
+    // LOG(INFO) << "Done some tests" << std::endl;
     // std::cout << "mean = " << mdg.mean.transpose() << std::endl;
 }
 
 GTEST_API_ int main(int argc, char **argv) {
+    // google::InitGoogleLogging(argv[0]);
 	testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
