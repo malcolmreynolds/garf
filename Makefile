@@ -8,16 +8,19 @@ CXXFLAGS += -g -Wall -Wextra
 CXXFLAGS += -I/usr/local/include/eigen3
 
 
-# Google Test stuff
+# Google Test stuff - taken from the gtest sample1 makefile
 GTEST_DIR = /Users/malc/opt/gtest/trunk
 CPPFLAGS += -I$(GTEST_DIR)/include
-# All Google Test headers.  Usually you shouldn't change this
-# definition.
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
-# Usually you shouldn't tweak such internal variables, indicated by a
-# trailing _.
 GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
+
+# Google logging
+# LOG_LIBS = ''
+
+
+
+
 
 TESTS = bin/gaussian_tests
 
@@ -51,5 +54,5 @@ objs/gaussian_tests.o : tests/gaussian_tests.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I. -c tests/gaussian_tests.cpp -o objs/gaussian_tests.o
 
 bin/gaussian_tests : objs/gaussian_tests.o bin/gtest.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lglog $^ -o $@
 
