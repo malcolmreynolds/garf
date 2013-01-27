@@ -6,8 +6,9 @@
 .DS_Store
 bin/
 *.prof
+.sconsign.dblite
 
-test/reg_test
-test/shared_test
-test/test
+tests/reg_test
+tests/shared_test
+tests/test
 
