@@ -12,6 +12,7 @@ using Eigen::Matrix3d;
 using Eigen::MatrixXd;
 
 #include "garf/regression_forest.hpp"
+#include "garf/splitter.hpp"
 
 const double tol = 0.00001;
 
@@ -31,10 +32,8 @@ TEST(ForestTest, RegTest1) {
     MatrixXd labels = data.cwiseProduct(data);
     LOG(INFO) << "labels initialised: " << labels.transpose() << std::endl;
 
-    garf::RegressionForest forest;
+    garf::RegressionForest<garf::AxisAlignedSplt> forest;
     forest.train(data, labels);
-    
-
 
     EXPECT_TRUE(1 == 1);
 }

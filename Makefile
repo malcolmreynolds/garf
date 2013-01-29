@@ -28,6 +28,11 @@ clean :
 
 
 
+REG_FRST_HDRS = garf/*.hpp garf/util/*.hpp
+REG_FRST_SRC = garf/*.cpp garf/*.hpp garf/util/*.hpp
+
+
+
 # For simplicity and to avoid depending on Google Test's
 # implementation details, the dependencies specified below are
 # conservative and not optimized.  This is fine as Google Test
@@ -47,12 +52,12 @@ bin/gtest_main.a : objs/gtest-all.o objs/gtest_main.o
 gtest : bin/gtest_main.a bin/gtest.a
 
 
-objs/regression_forest.o : garf/regression_forest.cpp garf/regression_forest.hpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c garf/regression_forest.cpp -o $@
-objs/regression_tree.o : garf/regression_tree.cpp garf/regression_forest.hpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c garf/regression_tree.cpp -o $@
-objs/regression_node.o : garf/regression_node.cpp garf/regression_forest.hpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c garf/regression_node.cpp -o $@
+# objs/regression_forest.o : garf/regression_forest.cpp garf/regression_forest.hpp
+# 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c garf/regression_forest.cpp -o $@
+# objs/regression_tree.o : garf/regression_tree.cpp garf/regression_forest.hpp
+# 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c garf/regression_tree.cpp -o $@
+# objs/regression_node.o : garf/regression_node.cpp garf/regression_forest.hpp
+# 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c garf/regression_node.cpp -o $@
 
 
 
@@ -66,6 +71,6 @@ objs/gaussian_tests.o : tests/gaussian_tests.cpp
 bin/gaussian_tests : objs/gaussian_tests.o bin/gtest.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(TEST_LDFLAGS) $^ -o $@
 
-bin/forest_tests : objs/forest_tests.o objs/regression_forest.o objs/regression_tree.o objs/regression_node.o bin/gtest.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(TEST_LDFLAGS) $^ -o $@
+bin/forest_tests : objs/forest_tests.o bin/gtest.a $(REG_FRST_SRC)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(TEST_LDFLAGS) objs/forest_tests.o bin/gtest.a -o $@
 

@@ -3,7 +3,8 @@
 
 namespace garf {
 
-    void RegressionNode::train(const feature_matrix & features,
+    template<class SplitT>
+    void RegressionNode<SplitT>::train(const feature_matrix & features,
                                const label_matrix & labels,
                                const indices_vector & data_indices,
                                const TreeOptions & tree_opts,
@@ -32,14 +33,13 @@ namespace garf {
         }
 
         // Pick how to do the split here
-
-
-
+        // indices_vector 
     }
 
 
     // Determine whether the stop growing the tree at this node.
-    bool RegressionNode::stopping_conditions_reached(const TreeOptions & tree_opts) const {
+    template<class SplitT>
+    bool RegressionNode<SplitT>::stopping_conditions_reached(const TreeOptions & tree_opts) const {
         if (depth == tree_opts.max_depth) {
             return true; // Stop growing because we have reached max depth
         }
@@ -59,13 +59,6 @@ namespace garf {
             return true;
         }
 
-        // If none of the above has happened, we keep growing
-        return false;
+        return false;  // If none of the above has happened, we keep growing
     }
-
-
-
-
-
-
 }

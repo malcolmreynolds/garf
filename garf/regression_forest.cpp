@@ -5,7 +5,8 @@
 
 namespace garf {
 
-    void RegressionForest::train(const feature_matrix & features, const label_matrix & labels) {
+    template<class SplitT>
+    void RegressionForest<SplitT>::train(const feature_matrix & features, const label_matrix & labels) {
         if (is_trained) {
             throw std::invalid_argument("forest is already trained");
         }
@@ -26,7 +27,7 @@ namespace garf {
         forest_stats.data_dimensions = data_dimensions;
         forest_stats.num_training_datapoints = num_datapoints;
 
-        trees.reset(new RegressionTree[forest_options.max_num_trees]);
+        trees.reset(new RegressionTree<SplitT>[forest_options.max_num_trees]);
         LOG(INFO) << "created " << forest_options.max_num_trees << " trees" << std::endl;
 
         for (uint32_t tree_idx = 0; tree_idx < forest_options.max_num_trees; tree_idx++) {
@@ -42,7 +43,8 @@ namespace garf {
             LOG(INFO) << "data_indices for tree " << tree_idx << " = " << data_indices.transpose() << std::endl;
             trees[tree_idx].train(features, labels, data_indices, tree_options, split_options);
         }
-
     }
+
+
 
 }

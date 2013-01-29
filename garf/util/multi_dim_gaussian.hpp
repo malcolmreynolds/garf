@@ -3,21 +3,8 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <Eigen/Dense>
-#include <Eigen/Core>
-// #include <Eigen/VectorwiseOp.h>
 
-
-using Eigen::Matrix;
-// using Eigen::Vector;
-// using Eigen::ColXpr;
-using Eigen::RowVectorXd;
-// using Eigen::ColVectorXd;
-using Eigen::Vector3d;
-using Eigen::VectorXd;
-using Eigen::VectorXi;
-using Eigen::Matrix3d;
-using Eigen::MatrixXd;
+#include "../types.hpp"
 
 namespace garf {
 
@@ -341,13 +328,14 @@ namespace garf {
 
         friend std::ostream& operator<< (std::ostream& stream, const MultiDimGaussianX& mdg) {
             stream << "[MVN:mean[" << mdg.mean.transpose() << "]:cov[";
-            for (uint32_t r = 0; r < dimensions; r++) {
-                stream << mdg.mean.row(r)
-                if (r != (dimensions - 1)) { // if we have more rows to go..
+            for (uint32_t r = 0; r < mdg.dimensions; r++) {
+                stream << mdg.mean.row(r);
+                if (r != (mdg.dimensions - 1)) { // if we have more rows to go..
                     stream << "; ";
                 }
             }
-            stream << "]]"
+            stream << "]]";
+            return stream;
         }
 
 
