@@ -3,6 +3,7 @@
 *.so
 *.so.*
 *.pyc
+a.out
 .DS_Store
 objs/
 bin/

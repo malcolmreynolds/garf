@@ -17,11 +17,13 @@ using Eigen::MatrixXd;
 
 const double tol = 0.00001;
 
-TEST(MDGTest, HelloWorld) {
+TEST(MDGTest, FixedSize) {
     MatrixXd data(4, 3);
     data.setRandom();
+    LOG(INFO) << "first random data: " << std::endl << data << std::endl;
 
-    garf::multi_dim_gaussian<3> mdg;
+
+    garf::MultiDimGaussian<3> mdg;
 
     mdg.fit_params(data);
 
@@ -29,11 +31,25 @@ TEST(MDGTest, HelloWorld) {
     EXPECT_NEAR(mdg.mean(1), -0.261182, tol);
     EXPECT_NEAR(mdg.mean(2), 0.258454, tol);
 
-    LOG(ERROR) << "Done some tests" << std::endl;
+    // LOG(ERROR) << "Done some tests" << std::endl;
     // std::cout << "mean = " << mdg.mean.transpose() << std::endl;
 }
 
+TEST(MDGTest, VariableSize) {
+    MatrixXd data(4, 3);
+    data.setRandom();
+
+    garf::MultiDimGaussianX mdgx(3);
+
+    LOG(INFO) << "second random data: " << std::endl << data << std::endl;
+
+    EXPECT_TRUE(true);
+}
+
+
+
 GTEST_API_ int main(int argc, char **argv) {
+    FLAGS_stderrthreshold = 0;
     google::InitGoogleLogging(argv[0]);
 	testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
