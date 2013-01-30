@@ -61,7 +61,7 @@ gtest : bin/gtest_main.a bin/gtest.a
 
 
 
-objs/forest_tests.o : tests/forest_tests.cpp garf/regression_forest.hpp
+objs/forest_tests.o : tests/forest_tests.cpp $(REG_FRST_SRC)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I. -c tests/forest_tests.cpp -o $@
 
 

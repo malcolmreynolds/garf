@@ -23,11 +23,11 @@ namespace garf {
     typedef Eigen::VectorXd feature_vector;
     typedef Eigen::MatrixXd label_matrix;
     typedef Eigen::VectorXi indices_vector;
-    typedef uint32_t tree_id_t;
-    typedef uint32_t node_id_t;
+    typedef uint32_t tree_idx_t;
+    typedef uint64_t node_idx_t;
     typedef uint32_t label_idx_t;
     typedef uint32_t feat_idx_t;
-    typedef uint32_t depth_t;
+    typedef uint32_t depth_idx_t;
     typedef enum { LEFT, RIGHT } split_dir_t;
 
 }

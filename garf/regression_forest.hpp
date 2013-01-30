@@ -8,35 +8,13 @@
 #include <Eigen/Core>
 
 #include "types.hpp"
+#include "options.hpp"
+#include "splitter.hpp"
+#include "split_fitter.hpp"
 #include "util/multi_dim_gaussian.hpp"
 
+
 namespace garf {
-    /* Options which work at the top level of training - how
-      many trees to make, what data to give them etc */
-    struct ForestOptions {
-        uint32_t max_num_trees;
-        bool bagging;
-        ForestOptions() : max_num_trees(10), bagging(false) {}
-    };
-
-    /* Options which are needed inside a tree - ie when to stop splitting.
-      These are needed regardless of how we are doing the splitting */
-    struct TreeOptions {
-        uint32_t max_depth;
-        uint32_t min_sample_count; // don't bother with a split if
-        double min_variance;
-        TreeOptions() : min_sample_count(10), min_variance(0.00001) {}
-    };
-
-    /* Options for how to split the tree */
-    struct SplitOptions {
-
-    };
-
-    /* Options for how we do the prediction (early stopping at maximum depth for example) */
-    struct PredictOptions {
-        depth_t maximum_depth;
-    };
 
     /* This is stuff we don't specify in advance, but we can query any forest about it. */
     struct ForestStats {
@@ -45,14 +23,18 @@ namespace garf {
         uint32_t num_training_datapoints;
     };
 
-    template<class SplitT>
+    template<class SplitT, class SpltFitterT> class RegressionTree;
+    template<class SplitT, class SpltFitterT> class RegressionNode;
+    template<class SplitT, class SpltFitterT> class RegressionForest;
+
+    template<class SplitT, class SpltFitterT>
     class RegressionNode {
         // parent node and children (left and right) nodes. Use a shared_ptr
         // so that when this node is destructed it also destructs the children
         // automatically
-        const RegressionNode<SplitT> * const parent;
-        boost::shared_ptr<RegressionNode<SplitT> > left;
-        boost::shared_ptr<RegressionNode<SplitT> > right;
+        const RegressionNode<SplitT, SpltFitterT> * const parent;
+        boost::shared_ptr<RegressionNode<SplitT, SpltFitterT> > left;
+        boost::shared_ptr<RegressionNode<SplitT, SpltFitterT> > right;
 
         // Label distribution
         MultiDimGaussianX dist;
@@ -61,8 +43,8 @@ namespace garf {
         indices_vector training_data_indices;
 
         // Keep track of our identity and place in tree
-        const node_id_t node_id;
-        const depth_t depth;
+        const node_idx_t node_id;
+        const depth_idx_t depth;
 
         // The split object. This just holds the raw data necessary for
         // splitting - all intermediate data used while training should
@@ -71,9 +53,9 @@ namespace garf {
     public:
         // When constructing, the only thing we should need to store is the parent (this
         // is allowed to be null, when we have the root node
-        RegressionNode(node_id_t _node_id,
-                       const RegressionNode<SplitT> * const _parent,
-                       label_idx_t _num_label_dims, depth_t _depth)
+        RegressionNode(node_idx_t _node_id,
+                       const RegressionNode<SplitT, SpltFitterT> * const _parent,
+                       label_idx_t _num_label_dims, depth_idx_t _depth)
             : parent(_parent), dist(_num_label_dims), node_id(_node_id), depth(_depth) {};
         inline ~RegressionNode() {};
 
@@ -81,11 +63,12 @@ namespace garf {
 
         // First 5 arguments all compulsory. Last one allows us to optionally
         // provide an initial distribution, which otherwise we will need to calculate
-        void train(const feature_matrix & features,
+        void train(const RegressionTree<SplitT, SpltFitterT> & tree,
+                   const feature_matrix & features,
                    const label_matrix & labels,
                    const indices_vector & data_indices,
                    const TreeOptions & tree_opts,
-                   const SplitOptions & split_opts,
+                   SpltFitterT * fitter,
                    const MultiDimGaussianX * const _dist = NULL);
 
         // decides whether the datapoints that reach this node justify further splitting
@@ -93,14 +76,16 @@ namespace garf {
 
         // Small utility functions
         inline uint32_t num_training_datapoints() const { return training_data_indices.size(); }
+        inline node_idx_t left_child_index() const { return (2 * node_id) + 1; }
+        inline node_idx_t right_child_index() const { return (2 * node_id) + 2; }
     };
 
 
-    template<class SplitT>
+    template<class SplitT, class SpltFitterT>
     class RegressionTree {
-        boost::shared_ptr<RegressionNode<SplitT> > root;
+        boost::shared_ptr<RegressionNode<SplitT, SpltFitterT> > root;
     public:
-        tree_id_t tree_id;
+        tree_idx_t tree_id;
         void train(const feature_matrix & features,
                    const label_matrix & labels,
                    const indices_vector & data_indices,
@@ -108,7 +93,8 @@ namespace garf {
                    const SplitOptions & split_opts);
 
         // Given some data vector, return a const reference to the node it would stop at
-        const RegressionNode<SplitT> & evaluate(const feature_vector & fvec, const PredictOptions & predict_opts);
+        const RegressionNode<SplitT, SpltFitterT> & evaluate(const feature_vector & fvec,
+                                                             const PredictOptions & predict_opts);
     };
 
        
@@ -117,7 +103,7 @@ namespace garf {
     // doubles. What we do want to template on is
     // the type of feature splitter we have, but let's get the
     // main interface down for now 
-    template<class SplitT>
+    template<class SplitT, class SpltFitterT>
     class RegressionForest {
         bool is_trained;
 
@@ -127,7 +113,7 @@ namespace garf {
 
         ForestStats forest_stats;
 
-        boost::shared_array<RegressionTree<SplitT> > trees;
+        boost::shared_array<RegressionTree<SplitT, SpltFitterT> > trees;
     public:
         RegressionForest() : is_trained(false)  {};
         inline ~RegressionForest() {}

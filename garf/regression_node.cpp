@@ -1,30 +1,29 @@
 #include <glog/logging.h>
-#include "regression_forest.hpp"
 
 namespace garf {
 
-    template<class SplitT>
-    void RegressionNode<SplitT>::train(const feature_matrix & features,
-                               const label_matrix & labels,
-                               const indices_vector & data_indices,
-                               const TreeOptions & tree_opts,
-                               const SplitOptions & split_opts,
-                               const MultiDimGaussianX * const _dist) {
-        // Store the indices which pass through this node
+    template<class SplitT, class SplFitterT>
+    void RegressionNode<SplitT, SplFitterT>::train(const RegressionTree<SplitT, SplFitterT> & tree,
+                                                   const feature_matrix & features,
+                                                   const label_matrix & labels,
+                                                   const indices_vector & data_indices,
+                                                   const TreeOptions & tree_opts,
+                                                   SplFitterT * fitter,
+                                                   const MultiDimGaussianX * const _dist) {
+        // Store the indices which pass through this node - this should do a copy. I hope!
         training_data_indices = data_indices;
-        LOG(INFO) << "node id " << node_id << " got " << num_training_datapoints() << " datapoints." << std::endl;
+        LOG(INFO) << "[t" << tree.tree_id << ":" << node_id << "] got " << num_training_datapoints() << " datapoints: [" << data_indices.transpose() << "]" << std::endl;
 
         if (_dist == NULL) {
-            LOG(INFO) << "no distribution provided, calculating..." << std::endl;
+            LOG(INFO) << "[t" << tree.tree_id << ":" << node_id << "] no dist provided, calculating..." << std::endl;
             dist.fit_params(labels, data_indices);
         }
         else {
-            LOG(INFO) << "using provided distribution" << std::endl;
+            LOG(INFO) << "[t" << tree.tree_id << ":" << node_id << "] using provided distribution" << std::endl;
             dist.mean = _dist->mean;
             dist.cov = _dist->cov;
         }
-
-        LOG(INFO) << "node id " << node_id << " has mean " << dist.mean << std::endl;
+        LOG(INFO) << "[t" << tree.tree_id << ":" << node_id << "] dist = " << dist << std::endl;
 
         // Check whether to stop growing now. NB: even if this returns false, we might
         // still stop growing if we cannot find a decent split (see below)
@@ -32,14 +31,35 @@ namespace garf {
             return;
         }
 
-        // Pick how to do the split here
-        // indices_vector 
+        // get the indices going left and right from splitter object. We declare
+        // them on the stack here, so that they are cleaned up at the end of this call to train()
+        // automatically
+        indices_vector right_child_indices;
+        indices_vector left_child_indices;
+
+        // bool good_split_found = true;
+        bool good_split_found = fitter->choose_split_parameters(features, labels, data_indices, dist,
+                                                           &left_child_indices, &right_child_indices);
+
+        if (!good_split_found) {
+            LOG(ERROR) << "[t" << tree.tree_id << ":" << node_id << "] didn't find a good split, stopping early" << std::endl;
+            return;
+        }
+
+        // If we are here then assume we found decent splits, indices of which
+        // are stored in left_child_indices and right_child_indices. First create child nodes, then
+        // do the training. FIXME: we could increase efficiency (slightly!) but
+        left.reset(new RegressionNode<SplitT, SplFitterT>(left_child_index(), this,
+                                                          labels.cols(), depth + 1));
+        right.reset(new RegressionNode<SplitT, SplFitterT>(right_child_index(), this,
+                                                           labels.cols(), depth + 1));
+        left->train(tree, features, labels, left_child_indices, tree_opts, fitter);
+        right->train(tree, features, labels, right_child_indices, tree_opts, fitter);
     }
 
-
     // Determine whether the stop growing the tree at this node.
-    template<class SplitT>
-    bool RegressionNode<SplitT>::stopping_conditions_reached(const TreeOptions & tree_opts) const {
+    template<class SplitT, class SplFitterT>
+    bool RegressionNode<SplitT, SplFitterT>::stopping_conditions_reached(const TreeOptions & tree_opts) const {
         if (depth == tree_opts.max_depth) {
             return true; // Stop growing because we have reached max depth
         }
