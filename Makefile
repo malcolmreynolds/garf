@@ -1,7 +1,7 @@
 
 CXX=clang++
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra 
+CXXFLAGS += -g -Wall -Wextra -std=c++0x   #-stdlib=libc++
 
 
 # Eigen
@@ -16,6 +16,7 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 
 # Google logging
+LDFLAGS += -stdlib=libc++
 TEST_LDFLAGS += -lglog -lpthread
 
 
@@ -38,10 +39,10 @@ REG_FRST_SRC = garf/*.cpp garf/*.hpp garf/util/*.hpp
 # conservative and not optimized.  This is fine as Google Test
 # compiles fast and for ordinary users its source rarely changes.
 objs/gtest-all.o : $(GTEST_SRCS_)
-	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c $(GTEST_DIR)/src/gtest-all.cc -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c $(GTEST_DIR)/src/gtest-all.cc -o $@
 
 objs/gtest_main.o : $(GTEST_SRCS_)
-	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c $(GTEST_DIR)/src/gtest_main.cc -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c $(GTEST_DIR)/src/gtest_main.cc -o $@
 
 bin/gtest.a : objs/gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
@@ -69,8 +70,8 @@ objs/gaussian_tests.o : tests/gaussian_tests.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I. -c $^ -o $@
 
 bin/gaussian_tests : objs/gaussian_tests.o bin/gtest.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(TEST_LDFLAGS) $^ -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(TEST_LDFLAGS) $(LDFLAGS) $^ -o $@
 
 bin/forest_tests : objs/forest_tests.o bin/gtest.a $(REG_FRST_SRC)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(TEST_LDFLAGS) objs/forest_tests.o bin/gtest.a -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(TEST_LDFLAGS) $(LDFLAGS) objs/forest_tests.o bin/gtest.a -o $@
 
