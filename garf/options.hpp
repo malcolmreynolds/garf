@@ -14,8 +14,8 @@ namespace garf {
     /* Options which are needed inside a tree - ie when to stop splitting.
       These are needed regardless of how we are doing the splitting */
     struct TreeOptions {
-        uint32_t max_depth;
-        uint32_t min_sample_count; // don't bother with a split if
+        uint64_t max_depth;
+        uint64_t min_sample_count; // don't bother with a split if
         double min_variance;
         TreeOptions() : max_depth(2), min_sample_count(10), min_variance(0.00001) {}
     };

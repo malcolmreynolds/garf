@@ -48,7 +48,7 @@ namespace garf {
 
         if (!good_split_found) {
             //LOG(ERROR)
-            std::cout << "[t" << tree.tree_id << ":" << node_id << "] didn't find a good split, stopping early" << std::endl;
+            std::cout << "[t" << tree.tree_id << ":" << node_id << "] didn't find a good split, stopping" << std::endl;
             return;
         }
 

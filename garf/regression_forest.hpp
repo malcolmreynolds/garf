@@ -18,9 +18,11 @@ namespace garf {
 
     /* This is stuff we don't specify in advance, but we can query any forest about it. */
     struct ForestStats {
-        uint32_t data_dimensions;
-        uint32_t label_dimensions;
-        uint32_t num_training_datapoints;
+        uint64_t data_dimensions;
+        uint64_t label_dimensions;
+        uint64_t num_training_datapoints;
+        uint64_t num_trees;
+        inline ForestStats() : data_dimensions(-1), label_dimensions(-1), num_training_datapoints(-1), num_trees(0) {}
     };
 
     template<class SplitT, class SpltFitterT> class RegressionTree;
@@ -107,22 +109,23 @@ namespace garf {
     class RegressionForest {
         bool is_trained;
 
-        ForestOptions forest_options;
-        TreeOptions tree_options;
-        SplitOptions split_options;
-
         ForestStats forest_stats;
 
         boost::shared_array<RegressionTree<SplitT, SpltFitterT> > trees;
     public:
+
+        ForestOptions forest_options;
+        TreeOptions tree_options;
+        SplitOptions split_options;
+
         RegressionForest() : is_trained(false)  {};
         inline ~RegressionForest() {}
 
-        // Train a forest with some dataset
-        inline void train() { std::cout << "blah" << std::endl; }
-        void train(const feature_matrix & features, const label_matrix & labels);
 
-        void predict(const feature_matrix & features, label_matrix * output_labels, label_matrix * output_variance);
+        void clear();
+        void train(const feature_matrix & features, const label_matrix & labels);
+        void predict(const feature_matrix & features, label_matrix * const output_labels, label_matrix * const output_variance) const;
+
     };
 
     
