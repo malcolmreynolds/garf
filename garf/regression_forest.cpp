@@ -54,6 +54,16 @@ namespace garf {
         is_trained = false;
     }
 
+    // Given a single feature vector, send it down each tree in turn and fill the given scoped 
+    // array with pointers to which node it lands at in each
+    template<class SplitT, class SplFitterT>
+    void RegressionForest<SplitT, SplFitterT>::predict_single_vector(const feature_vector & feature_vec,
+                                                                     boost::scoped_array<RegressionNode<SplitT, SplFitterT> const *> * leaf_nodes_reached) const {
+        for (tree_idx_t t = 0; t < forest_stats.num_trees; t++) {
+            (*leaf_nodes_reached)[t] = &trees[t].evaluate(feature_vec, predict_options);
+        }
+    }
+
 
     template<class SplitT, class SplFitterT>
     void RegressionForest<SplitT, SplFitterT>::predict(const feature_matrix & features,
@@ -76,11 +86,36 @@ namespace garf {
 
         std::cout << "in predict(), tests passed" << std::endl;
 
+        // Clear the outputs as we will sum into them
+        output_labels->setZero();
+        output_variance->setZero();
+
+
+        // scoped array so we are exception safe. This array contains pointers to const RegressionNodes, so
+        // we can't change the node in any way
+        boost::scoped_array<RegressionNode<SplitT, SplFitterT> const *> leaf_nodes_reached;
+        leaf_nodes_reached.reset(new RegressionNode<SplitT, SplFitterT> const *[forest_stats.num_trees]);
 
         for (feat_idx_t feat_vec_idx = 0; feat_vec_idx < num_features_to_predict; feat_vec_idx++) {
-            // for each datapoint, we want to work out the set of leaf nodes it reaches
+            std::cout << "predicting on datapoint #" << feat_vec_idx << ": " << features.row(feat_vec_idx).transpose() << std::endl;
+            // for each datapoint, we want to work out the set of leaf nodes it reaches, 
+            // then calculate variances or whatever.
+
+            predict_single_vector(features.row(feat_vec_idx), &leaf_nodes_reached);
+
+            // Calculate means and variances
+            for (tree_idx_t t = 0; t < forest_stats.num_trees; t++) {
+                output_labels->row(feat_vec_idx) += leaf_nodes_reached[t]->dist.mean;
+            }
+
+            std::cout << "data point " << features.row(feat_vec_idx) << " landed in nodes: ";
+            for (tree_idx_t t = 0; t < forest_stats.num_trees; t++) {
+                std::cout << "[" << leaf_nodes_reached[t]->node_id << ":" << leaf_nodes_reached[t]->dist << "] ";
+            }
+            std::cout << std::endl;
         }
 
+        *output_labels /= forest_stats.num_trees;
 
     }
 

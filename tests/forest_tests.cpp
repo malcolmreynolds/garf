@@ -40,18 +40,21 @@ TEST(ForestTest, RegTest1) {
 
     garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest;
     forest.clear();
-    forest.tree_options.max_depth = 5;
-    forest.tree_options.min_sample_count = 1;
+    forest.tree_options.max_depth = 2;
+    forest.tree_options.min_sample_count = 2;
     forest.train(data, labels);
 
 
     MatrixXd test_data(data_elements, data_dims);
-    data.col(0).setLinSpaced(data_elements, -5, 5);
+    test_data.col(0).setLinSpaced(data_elements, -5, 5);
 
     MatrixXd predicted_labels(data_elements, label_dims);
     MatrixXd predicted_variance(data_elements, label_dims);
 
     forest.predict(data, &predicted_labels, &predicted_variance);
+
+    std::cout << "predicted labels: " << predicted_labels.transpose() << std::endl;
+    std::cout << "true labels: " << test_data.transpose() << std::endl;
 
 
     EXPECT_TRUE(1 == 1);

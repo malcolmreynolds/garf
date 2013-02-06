@@ -30,13 +30,18 @@ namespace garf {
 
     template<class SplitT, class SplFitterT>
     const RegressionNode<SplitT, SplFitterT> & RegressionTree<SplitT, SplFitterT>::evaluate(const feature_vector & fvec,
-                                                                                            const PredictOptions & predict_opts) {
+                                                                                            const PredictOptions & predict_opts) const {
         depth_idx_t current_depth = 0;
+
+        std::cout << "[t" << tree_id << "].predict([" << fvec.transpose()
+            << "]), max depth is " << predict_opts.maximum_depth << std::endl;
 
         RegressionNode<SplitT, SplFitterT> * current_node = root.get();
 
         split_dir_t dir;
-        while (current_depth < predict_opts.maximum_depth) {
+        while (current_depth < predict_opts.maximum_depth &&
+               !current_node->is_leaf()) {
+            std::cout << "t[" << tree_id << ":" << current_node->node_id << "], evaluating..." << std::endl;
             dir = current_node->split.evaluate(fvec);
             if (dir == LEFT) {
                 current_node = current_node->left.get();

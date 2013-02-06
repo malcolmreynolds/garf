@@ -17,7 +17,7 @@ namespace garf {
         feat_idx_t feat_idx;
         double thresh;
         inline split_dir_t evaluate(const feature_vector & fvec) const {
-            if (fvec(feat_idx) >= thresh) {
+            if (fvec(feat_idx) <= thresh) {
                 return LEFT;
             }
             return RIGHT;
