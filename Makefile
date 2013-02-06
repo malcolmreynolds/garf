@@ -1,7 +1,7 @@
 
 CXX=clang++
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra -std=c++0x   #-stdlib=libc++
+CXXFLAGS += -g -Wall -Wextra -std=c++0x   -stdlib=libc++
 
 
 # Eigen
@@ -9,7 +9,7 @@ CXXFLAGS += -I/usr/local/include/eigen3
 
 
 # Google Test stuff - taken from the gtest sample1 makefile
-GTEST_DIR = /Users/malc/opt/gtest/trunk
+GTEST_DIR = /Users/malc/opt/gtest
 CPPFLAGS += -I$(GTEST_DIR)/include
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
@@ -17,7 +17,7 @@ GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 
 # Google logging
 LDFLAGS += -stdlib=libc++
-TEST_LDFLAGS += -lglog -lpthread
+TEST_LDFLAGS +=  -lpthread
 
 
 TESTS = bin/gaussian_tests bin/forest_tests
@@ -30,7 +30,7 @@ clean :
 
 
 REG_FRST_HDRS = garf/*.hpp garf/util/*.hpp
-REG_FRST_SRC = garf/*.cpp garf/*.hpp garf/util/*.hpp
+REG_FRST_SRC = garf/*.cpp garf/*.hpp garf/impl/*.cpp garf/util/*.hpp
 
 
 

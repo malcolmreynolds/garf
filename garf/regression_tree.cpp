@@ -1,4 +1,4 @@
-#include <glog/logging.h>
+// #include <glog/logging.h>
 
 namespace garf {
 
@@ -8,7 +8,8 @@ namespace garf {
                                                    const indices_vector & data_indices,
                                                    const TreeOptions & tree_opts,
                                                    const SplitOptions & split_opts) {
-        LOG(INFO) << "[t" << tree_id << "].train() data_indices = [" << data_indices.transpose() << "]" << std::endl;
+        //LOG(INFO)
+        std::cout << "[t" << tree_id << "].train() data_indices = [" << data_indices.transpose() << "]" << std::endl;
     
         // constructor argument to RegressionNode is node id & link to parent,
         // plus label dimensionality (need this in the constructor so
@@ -22,7 +23,7 @@ namespace garf {
         // then gets automatically deleted because it's on the stack. Also means once training
         // is done only the necessary data is left in the forest (to reduce memory usage
         // & serialization size)
-        SplFitterT fitter(split_opts);
+        SplFitterT fitter(split_opts, labels.cols(), tree_id); // seed RNG with the tree id
         root->train(*this, features, labels, data_indices,
                     tree_opts, &fitter);
     }

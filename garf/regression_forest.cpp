@@ -1,5 +1,5 @@
 #include <stdexcept>
-#include <glog/logging.h>
+// #include <glog/logging.h>
 
 namespace garf {
 
@@ -17,7 +17,8 @@ namespace garf {
             throw std::invalid_argument("number of labels doesn't match number of features");
         }
 
-        LOG(INFO) << "Forest[" << this << "] got " << num_datapoints << "x "
+        // LOG(INFO)
+        std::cout << "Forest[" << this << "] got " << num_datapoints << "x "
             << data_dimensions << " dimensional datapoints with "
             << label_dimensions << " dimensional labels" << std::endl;
 
@@ -26,7 +27,8 @@ namespace garf {
         forest_stats.num_training_datapoints = num_datapoints;
 
         trees.reset(new RegressionTree<SplitT, SplFitterT>[forest_options.max_num_trees]);
-        LOG(INFO) << "created " << forest_options.max_num_trees << " trees" << std::endl;
+        // LOG(INFO)
+        std::cout << "created " << forest_options.max_num_trees << " trees" << std::endl;
 
         for (uint32_t tree_idx = 0; tree_idx < forest_options.max_num_trees; tree_idx++) {
             trees[tree_idx].tree_id = tree_idx;

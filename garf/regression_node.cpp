@@ -1,4 +1,4 @@
-#include <glog/logging.h>
+// #include <glog/logging.h>
 
 namespace garf {
 
@@ -12,18 +12,23 @@ namespace garf {
                                                    const MultiDimGaussianX * const _dist) {
         // Store the indices which pass through this node - this should do a copy. I hope!
         training_data_indices = data_indices;
-        LOG(INFO) << "[t" << tree.tree_id << ":" << node_id << "] got " << num_training_datapoints() << " datapoints: [" << data_indices.transpose() << "]" << std::endl;
+        //LOG(INFO)
+        std::cout << "[t" << tree.tree_id << ":" << node_id << "] got " << num_training_datapoints()
+            << " datapoints: [" << data_indices.transpose() << "]" << std::endl;
 
         if (_dist == NULL) {
-            LOG(INFO) << "[t" << tree.tree_id << ":" << node_id << "] no dist provided, calculating..." << std::endl;
+            //LOG(INFO)
+            std::cout << "[t" << tree.tree_id << ":" << node_id << "] no dist provided, calculating..." << std::endl;
             dist.fit_params(labels, data_indices);
         }
         else {
-            LOG(INFO) << "[t" << tree.tree_id << ":" << node_id << "] using provided distribution" << std::endl;
+            //LOG(INFO)
+            std::cout << "[t" << tree.tree_id << ":" << node_id << "] using provided distribution" << std::endl;
             dist.mean = _dist->mean;
             dist.cov = _dist->cov;
         }
-        LOG(INFO) << "[t" << tree.tree_id << ":" << node_id << "] dist = " << dist << std::endl;
+        //LOG(INFO)
+        std::cout << "[t" << tree.tree_id << ":" << node_id << "] dist = " << dist << std::endl;
 
         // Check whether to stop growing now. NB: even if this returns false, we might
         // still stop growing if we cannot find a decent split (see below)
@@ -39,10 +44,11 @@ namespace garf {
 
         // bool good_split_found = true;
         bool good_split_found = fitter->choose_split_parameters(features, labels, data_indices, dist,
-                                                           &left_child_indices, &right_child_indices);
+                                                                &split, &left_child_indices, &right_child_indices);
 
         if (!good_split_found) {
-            LOG(ERROR) << "[t" << tree.tree_id << ":" << node_id << "] didn't find a good split, stopping early" << std::endl;
+            //LOG(ERROR)
+            std::cout << "[t" << tree.tree_id << ":" << node_id << "] didn't find a good split, stopping early" << std::endl;
             return;
         }
 

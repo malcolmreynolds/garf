@@ -8,7 +8,7 @@ namespace garf {
     struct ForestOptions {
         uint32_t max_num_trees;
         bool bagging;
-        ForestOptions() : max_num_trees(10), bagging(false) {}
+        ForestOptions() : max_num_trees(2), bagging(false) {}
     };
 
     /* Options which are needed inside a tree - ie when to stop splitting.
@@ -17,18 +17,22 @@ namespace garf {
         uint32_t max_depth;
         uint32_t min_sample_count; // don't bother with a split if
         double min_variance;
-        TreeOptions() : min_sample_count(10), min_variance(0.00001) {}
+        TreeOptions() : max_depth(2), min_sample_count(10), min_variance(0.00001) {}
     };
 
     /* Options for how to split the tree */
     struct SplitOptions {
-        uint32_t num_splits_to_try;
+        split_idx_t num_splits_to_try;
+        split_idx_t threshes_per_split;
+
+        SplitOptions() : num_splits_to_try(5), threshes_per_split(3) {}
 
     };
 
     /* Options for how we do the prediction (early stopping at maximum depth for example) */
     struct PredictOptions {
         depth_idx_t maximum_depth;
+        PredictOptions() : maximum_depth(100) {}
     };
 }
 

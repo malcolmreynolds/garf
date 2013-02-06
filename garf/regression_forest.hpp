@@ -59,7 +59,7 @@ namespace garf {
             : parent(_parent), dist(_num_label_dims), node_id(_node_id), depth(_depth) {};
         inline ~RegressionNode() {};
 
-        inline void train() { LOG(INFO) << "decoy train()" << std::endl; }
+        inline void train() { std::cout << "decoy train()" << std::endl; }
 
         // First 5 arguments all compulsory. Last one allows us to optionally
         // provide an initial distribution, which otherwise we will need to calculate

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <glog/logging.h>
+// #include <glog/logging.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -20,7 +20,8 @@ const double tol = 0.00001;
 TEST(MDGTest, FixedSize) {
     MatrixXd data(4, 3);
     data.setRandom();
-    LOG(INFO) << "first random data: " << std::endl << data << std::endl;
+    // LOG(INFO)
+    std::cout << "first random data: " << std::endl << data << std::endl;
 
 
     garf::MultiDimGaussian<3> mdg;
@@ -41,7 +42,8 @@ TEST(MDGTest, VariableSize) {
 
     garf::MultiDimGaussianX mdgx(3);
 
-    LOG(INFO) << "second random data: " << std::endl << data << std::endl;
+    // LOG(INFO)
+    std::cout << "second random data: " << std::endl << data << std::endl;
 
     EXPECT_TRUE(true);
 }
@@ -49,8 +51,8 @@ TEST(MDGTest, VariableSize) {
 
 
 GTEST_API_ int main(int argc, char **argv) {
-    FLAGS_stderrthreshold = 0;
-    google::InitGoogleLogging(argv[0]);
+    // FLAGS_stderrthreshold = 0;
+    // google::InitGoogleLogging(argv[0]);
 	testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }

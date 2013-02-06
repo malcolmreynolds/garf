@@ -13,7 +13,7 @@ namespace garf {
     public:
 
         uint32_t dimensionality() const { return dimensions; }
-        Matrix<double, dimensions, 1> mean;
+        feature_vector mean;
         Matrix<double, dimensions, dimensions> cov;
 
         inline MultiDimGaussian() { initialise_params(); }
@@ -23,13 +23,13 @@ namespace garf {
             cov.setZero();
         }
 
-        inline MultiDimGaussian(Matrix<double, dimensions, 1> _mean,
+        inline MultiDimGaussian(feature_vector _mean,
                                 Matrix<double, dimensions, dimensions> _cov) {
             mean = _mean;
             cov = _cov;
         }
 
-        inline void check_data_dimensionality(const MatrixXd & input_data) const {
+        inline void check_data_dimensionality(const feature_matrix & input_data) const {
             uint32_t input_data_dimensionality = input_data.cols();
             if (input_data_dimensionality != dimensions) {
                 throw std::invalid_argument("input data dimensionality doesn't match in fit_params");   
@@ -42,7 +42,7 @@ namespace garf {
             should be (same as our dimensionality) we don't know the other one, and we
             can't template the entire program on every possible dataset size
          */
-        inline void fit_params(const MatrixXd & input_data) {
+        inline void fit_params(const feature_matrix & input_data) {
             check_data_dimensionality(input_data);
             uint32_t num_input_datapoints = input_data.rows();
 
@@ -87,7 +87,7 @@ namespace garf {
 
         /* As above, but allows us to also pass a vector of indices indicating only
            certain rows of the data matrix should be considered */
-        inline void fit_params(const MatrixXd & input_data, const VectorXi & valid_indices) {
+        inline void fit_params(const feature_matrix & input_data, const indices_vector & valid_indices) {
             check_data_dimensionality(input_data);
             uint32_t num_input_datapoints = valid_indices.size();
 
@@ -210,7 +210,7 @@ namespace garf {
             should be (same as our dimensionality) we don't know the other one, and we
             can't template the entire program on every possible dataset size
          */
-        inline void fit_params(const MatrixXd & input_data) {
+        inline void fit_params(const feature_matrix & input_data) {
             check_data_dimensionality(input_data);
             uint32_t num_input_datapoints = input_data.rows();
 
@@ -255,7 +255,7 @@ namespace garf {
 
         /* As above, but allows us to also pass a vector of indices indicating only
            certain rows of the data matrix should be considered */
-        inline void fit_params(const MatrixXd & input_data, const VectorXi & valid_indices) {
+        inline void fit_params(const feature_matrix & input_data, const indices_vector & valid_indices) {
             check_data_dimensionality(input_data);
             uint32_t num_input_datapoints = valid_indices.size();
 
@@ -289,8 +289,46 @@ namespace garf {
                     }
                 }
             }
-
         }
+
+
+        /* As above again, but if only some of the indices in valid_indices are valid. For memory efficiency,
+           sometimes it is better to allocate a vector that is too big, and then only use the first few elements) */
+        inline void fit_params(const feature_matrix & input_data, const indices_vector & valid_indices, const uint64_t num_input_datapoints) {
+            check_data_dimensionality(input_data);
+
+            MatrixXd mean_k_minus_1(dimensions, 1);
+            initialise_params();
+
+            mean = input_data.row(valid_indices(0));
+
+            for (uint64_t k = 1; k < num_input_datapoints; k++) {
+                int data_idx = valid_indices(k);
+                mean_k_minus_1 = mean;
+
+                // update the mean
+                mean = mean_k_minus_1 + (input_data.row(data_idx).transpose() - mean_k_minus_1) / static_cast<double>(k + 1);
+
+                // update the covariance
+                for (uint64_t d1 = 0; d1 < dimensions; d1++) {
+                    double d1_diff = input_data(data_idx, d1) - mean_k_minus_1(d1);
+                    for(uint64_t d2 = d1; d2 < dimensions; d2++) {
+                        double addition = (k / static_cast<double>(k+1)) * d1_diff
+                                        * (input_data(data_idx, d2) - mean_k_minus_1(d2));
+                        cov(d1, d2) += addition;
+                        cov(d2, d1) = cov(d1, d2); // could make this more efficient by only doing it at the end
+                    }
+                }
+
+                // We have only calcualted the upper triangular portion of the answer. Copy into the lower triangular bit
+                for (uint64_t d1 = 0; d1 < dimensions; d1++) { 
+                    for (uint64_t d2 = (d1 + 1); d2 < dimensions; d2++) {
+                        cov(d2, d1) = cov(d1, d2);
+                    }
+                }
+            }
+        }
+
 
         inline void fit_params_inaccurate(const MatrixXd & input_data) {
             check_data_dimensionality(input_data);
@@ -327,9 +365,9 @@ namespace garf {
         }
 
         friend std::ostream& operator<< (std::ostream& stream, const MultiDimGaussianX& mdg) {
-            stream << "[MVN:mean[" << mdg.mean.transpose() << "]:cov[";
+            stream << "[mean[" << mdg.mean.transpose() << "]:cov[";
             for (uint32_t r = 0; r < mdg.dimensions; r++) {
-                stream << mdg.mean.row(r);
+                stream << mdg.cov.row(r);
                 if (r != (mdg.dimensions - 1)) { // if we have more rows to go..
                     stream << "; ";
                 }

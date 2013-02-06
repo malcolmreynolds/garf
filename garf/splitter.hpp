@@ -15,18 +15,19 @@ namespace garf {
     class AxisAlignedSplt : public Splitter {
     public:
         feat_idx_t feat_idx;
-        double split_value;
+        double thresh;
         inline split_dir_t evaluate(const feature_vector & fvec) const {
-            if (fvec(feat_idx) >= split_value) {
+            if (fvec(feat_idx) >= thresh) {
                 return LEFT;
             }
             return RIGHT;
         }
-        AxisAlignedSplt() : feat_idx(0), split_value(0.0) {}
+        AxisAlignedSplt() : feat_idx(0), thresh(0.0) {}
         inline char const * name() const { return "axis_aligned"; }
+        inline friend std::ostream& operator<< (std::ostream& stream, const AxisAlignedSplt& aas);
     };
 }
 
-// #include "split/axis_aligned.hpp"
+#include "impl/axis_aligned_splt.cpp"
 
 #endif
