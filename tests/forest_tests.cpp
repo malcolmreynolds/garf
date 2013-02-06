@@ -33,7 +33,7 @@ TEST(ForestTest, RegTest1) {
 
     std::cout << "data with noise: " << data.transpose() << std::endl;
 
-    MatrixXd labels = data.col(0); // .cwiseProduct(data.col(0));
+    MatrixXd labels = data.col(0).abs(); // .cwiseProduct(data.col(0));
                     // + data.col(1).cwiseProduct(data.col(1));
     // LOG(INFO)
     std::cout << "labels initialised: " << labels.transpose() << std::endl;
