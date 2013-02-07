@@ -7,10 +7,7 @@
 
 
 using Eigen::Matrix;
-// using Eigen::Vector;
-// using Eigen::ColXpr;
 using Eigen::RowVectorXd;
-// using Eigen::ColVectorXd;
 using Eigen::Vector3d;
 using Eigen::VectorXd;
 using Eigen::VectorXi;

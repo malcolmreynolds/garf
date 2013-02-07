@@ -4,6 +4,10 @@
 #include "types.hpp"
 
 namespace garf {
+
+
+    const double NaN = std::numeric_limits<double>::quiet_NaN();
+
     // Simply the parent class for all other splitters
     class Splitter {
         // Don't really need anything in here. We used to have a virtual function
@@ -12,6 +16,7 @@ namespace garf {
         // templates)
     };
 
+    // Splitter which does looks at a single feature dimension, tests against a single threshold
     class AxisAlignedSplt : public Splitter {
     public:
         feat_idx_t feat_idx;
@@ -22,12 +27,34 @@ namespace garf {
             }
             return RIGHT;
         }
-        AxisAlignedSplt() : feat_idx(0), thresh(0.0) {}
+        // Initialise to invalid values (-1, NaN) so we know if we are using uninitialised data
+        AxisAlignedSplt() : feat_idx(-1), thresh(NaN) {} 
         inline char const * name() const { return "axis_aligned"; }
         inline friend std::ostream& operator<< (std::ostream& stream, const AxisAlignedSplt& aas);
     };
+
+    // splitter which looks at two dimensions scaled by two weights, compares to a single threshold
+    class TwoDimSplt : public Splitter {
+    public:
+        feat_idx_t feat_1;
+        feat_idx_t feat_2;
+        double weight_feat_1;
+        double weight_feat_2;
+        double thresh;
+        inline split_dir_t evaluate(const feature_vector & fvec) const {
+            double test_val = (fvec(feat_1) * weight_feat_1) + 
+                              (fvec(feat_2) * weight_feat_2);
+            if (test_val <= thresh) {
+                return LEFT;
+            }
+            return RIGHT;
+        }
+        TwoDimSplt(): feat_1(-1), feat_2(-1), weight_feat_1(NaN), weight_feat_2(NaN), thresh(NaN) {}
+        inline char const * name() const { return "2_dim_hyp"; }
+        inline friend std::ostream& operator<< (std::ostream& stream, const TwoDimSplt& two_ds);
+    };
 }
 
-#include "impl/axis_aligned_splt.cpp"
+#include "splitter_print.cpp"
 
 #endif

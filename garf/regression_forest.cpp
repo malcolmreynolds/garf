@@ -34,6 +34,7 @@ namespace garf {
 
             indices_vector data_indices(num_datapoints);
             if (forest_options.bagging) {
+                // Need to 
                 throw std::logic_error("bagging not supported yet");
             } else {
                 // gives us a vector [0, 1, 2, 3, ... num_data_points-1]
@@ -167,7 +168,6 @@ namespace garf {
                 }
                 labels_out->row(feat_vec_idx) /= forest_stats.num_trees;
             } else {
-
                 // Compute mean and variance at the same time. We are using iterative method for calculating each
                 // online (this is most numerically stable) - see http://www-uxsup.csx.cam.ac.uk/~fanf2/hermes/doc/antiforgery/stats.pdf
                 label_vector mu_n(forest_stats.label_dimensions);
@@ -189,10 +189,9 @@ namespace garf {
                 // FIXME: swap the two lines below when I have a version of clang++ with the bug fixed
                 // labels_out->row(feat_vec_idx) = mu_n;
                 labels_out->row(feat_vec_idx).operator=(mu_n);
-// 
+
                 // Need this division since the calculation above computes S = num_datapoints * variance.
-                // After this division, we just have the variance which is what we want. Let users square root later
-                // if they want.
+                // After this division, we just have the variance which is what we want.
                 variances_out->row(feat_vec_idx) /= static_cast<double>(forest_stats.num_trees);
             }
 
@@ -201,12 +200,6 @@ namespace garf {
                     leaf_indices_out->coeffRef(feat_vec_idx, t) = leaf_nodes_reached[t]->node_id;
                 }
             }
-
-            // std::cout << "data point " << features.row(feat_vec_idx) << " landed in nodes: ";
-            // for (tree_idx_t t = 0; t < forest_stats.num_trees; t++) {
-            //     std::cout << "[" << leaf_nodes_reached[t]->node_id << ":" << leaf_nodes_reached[t]->dist << "] ";
-            // }
-            // std::cout << std::endl;
         }
     }
 }
