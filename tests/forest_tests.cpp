@@ -16,10 +16,10 @@ using Eigen::MatrixXd;
 const double tol = 0.00001;
 
 TEST(ForestTest, RegTest1) {
-    uint64_t data_elements = 10;
+    uint64_t data_elements = 100;
     uint64_t data_dims = 1;
     uint64_t label_dims = 1;
-    double noise_variance = 0.3;
+    double noise_variance = 1.0;
 
     MatrixXd data(data_elements, data_dims);
     data.col(0).setLinSpaced(data_elements, -5, 5);
@@ -33,13 +33,14 @@ TEST(ForestTest, RegTest1) {
 
     std::cout << "data with noise: " << data.transpose() << std::endl;
 
-    MatrixXd labels = data.col(0).abs(); // .cwiseProduct(data.col(0));
+    MatrixXd labels = data.col(0).cwiseAbs(); // .cwiseProduct(data.col(0));
                     // + data.col(1).cwiseProduct(data.col(1));
     // LOG(INFO)
     std::cout << "labels initialised: " << labels.transpose() << std::endl;
 
     garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest;
     forest.clear();
+    forest.forest_options.max_num_trees = 10;
     forest.tree_options.max_depth = 2;
     forest.tree_options.min_sample_count = 2;
     forest.train(data, labels);
@@ -54,6 +55,7 @@ TEST(ForestTest, RegTest1) {
     forest.predict(data, &predicted_labels, &predicted_variance);
 
     std::cout << "predicted labels: " << predicted_labels.transpose() << std::endl;
+    std::cout << "predicted variance: " << predicted_variance.transpose() << std::endl;
     std::cout << "true labels: " << test_data.transpose() << std::endl;
 
 

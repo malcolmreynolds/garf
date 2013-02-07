@@ -115,6 +115,15 @@ namespace garf {
         ForestStats forest_stats;
 
         boost::shared_array<RegressionTree<SplitT, SplFitterT> > trees;
+
+        // Checking the size of inputs given during prediction
+        void check_label_output_matrix(label_matrix * const labels_out, feat_idx_t num_datapoints_to_predict) const;
+        bool check_variance_output_matrix(label_matrix * const variances_out, feat_idx_t num_datapoints_to_predict) const;
+        bool check_leaf_index_output_matrix(tree_idx_matrix * const leaf_indices_out, feat_idx_t num_datapoints_to_predict) const;
+        void predict_single_vector(const feature_vector & feature_vec,
+                                   boost::scoped_array<RegressionNode<SplitT, SplFitterT> const *> * leaf_nodes_reached) const;
+
+
     public:
 
         ForestOptions forest_options;
@@ -125,19 +134,12 @@ namespace garf {
         RegressionForest() : is_trained(false), forest_options(), tree_options(), split_options(), predict_options()  {};
         inline ~RegressionForest() {}
 
-
+        // Below here is the main public API for interacting with forests
         void clear();
         void train(const feature_matrix & features, const label_matrix & labels);
-        void predict(const feature_matrix & features, label_matrix * const output_labels, label_matrix * const output_variance) const;
-        void predict_single_vector(const feature_vector & feature_vec,
-                                   boost::scoped_array<RegressionNode<SplitT, SplFitterT> const *> * leaf_nodes_reached) const;
-
+        void predict(const feature_matrix & features, label_matrix * const labels_out,
+                     label_matrix * const variances_out = NULL, tree_idx_matrix * const leaf_indices_output = NULL) const;
     };
-
-    
-
-
-
 }
 
 // Need to include all the implementation here or else the compiler can't access

@@ -21,6 +21,7 @@ namespace garf {
 
     // 64 bit for everything. This will probably suck on 32 bit machines, but whatever
     typedef double feat_t;
+    typedef double label_t;
     typedef uint64_t tree_idx_t;
     typedef uint64_t node_idx_t;
     typedef uint64_t label_idx_t;
@@ -34,6 +35,8 @@ namespace garf {
     typedef Eigen::VectorXd feature_vector;
     typedef Eigen::MatrixXd label_matrix;
     typedef Eigen::VectorXi indices_vector;
+    typedef Eigen::Matrix<node_idx_t, Eigen::Dynamic, Eigen::Dynamic> tree_idx_matrix;
+    typedef Eigen::Matrix<label_t, Eigen::Dynamic, 1> label_vector;
     typedef Eigen::Matrix<feat_idx_t, Eigen::Dynamic, 1> feat_idx_vector;
     typedef Eigen::Matrix<split_dir_t, Eigen::Dynamic, 1> split_dir_vector;
 

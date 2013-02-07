@@ -48,12 +48,6 @@ namespace garf {
             std::cout << "seeding RNG with " << seed_value << std::endl;
             rng.seed(seed_value);
         };
-        // virtual bool choose_split_parameters(const feature_matrix & features,
-        //                                      const feature_matrix & labels,
-        //                                      const indices_vector & parent_data_indices,
-        //                                      const MultiDimGaussianX & parent_dist,
-        //                                      indices_vector * left_child_indices_out,
-        //                                      indices_vector * right_child_indices_out) = 0;
     };
 
     class AxisAlignedSplFitter : public SplFitter {
