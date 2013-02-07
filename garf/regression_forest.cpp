@@ -9,9 +9,9 @@ namespace garf {
             throw std::invalid_argument("forest is already trained");
         }
 
-        uint32_t num_datapoints = features.rows();
-        uint32_t data_dimensions = features.cols();
-        uint32_t label_dimensions = labels.cols();
+        datapoint_idx_t num_datapoints = features.rows();
+        feat_idx_t data_dimensions = features.cols();
+        label_idx_t label_dimensions = labels.cols();
 
         if (labels.rows() != num_datapoints) {
             throw std::invalid_argument("number of labels doesn't match number of features");
@@ -29,18 +29,24 @@ namespace garf {
         forest_stats.num_trees = forest_options.max_num_trees;
         std::cout << "created " << forest_stats.num_trees << " trees" << std::endl;
 
-        for (uint32_t tree_idx = 0; tree_idx < forest_options.max_num_trees; tree_idx++) {
-            trees[tree_idx].tree_id = tree_idx;
+        // Create a RNG which we will need for picking the bagging indices, plus the uniform distribution
+        std::mt19937_64 rng; // Mersenne twister
+        std::uniform_int_distribution<datapoint_idx_t> bagging_index_picker(0, num_datapoints - 1);
+
+        for (tree_idx_t t = 0; t < forest_options.max_num_trees; t++) {
+            trees[t].tree_id = t;
 
             indices_vector data_indices(num_datapoints);
             if (forest_options.bagging) {
-                // Need to 
-                throw std::logic_error("bagging not supported yet");
+                // Sample indices from the full dataset WITH REPLACEMENT!!!
+                for (datapoint_idx_t d = 0; d < num_datapoints; d++) {
+                    data_indices(d) = bagging_index_picker(rng);
+                }
             } else {
                 // gives us a vector [0, 1, 2, 3, ... num_data_points-1]
                 data_indices.setLinSpaced(num_datapoints, 0, num_datapoints - 1);
             }
-            trees[tree_idx].train(features, labels, data_indices, tree_options, split_options);
+            trees[t].train(features, labels, data_indices, tree_options, split_options);
         }
 
         // We are done, so set the forest as trained

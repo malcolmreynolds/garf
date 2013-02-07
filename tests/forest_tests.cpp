@@ -41,7 +41,7 @@ TEST(ForestTest, RegTest1) {
     garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest;
     forest.clear();
     forest.forest_options.max_num_trees = 10;
-    forest.tree_options.max_depth = 2;
+    forest.tree_options.max_depth = 4;
     forest.tree_options.min_sample_count = 2;
     forest.train(data, labels);
 

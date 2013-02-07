@@ -8,7 +8,7 @@ namespace garf {
     struct ForestOptions {
         tree_idx_t max_num_trees;
         bool bagging;
-        ForestOptions() : max_num_trees(2), bagging(false) {}
+        ForestOptions() : max_num_trees(2), bagging(true) {}
     };
 
     /* Options which are needed inside a tree - ie when to stop splitting.
