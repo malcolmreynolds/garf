@@ -12,7 +12,7 @@ namespace garf {
                                indices_vector * indices_going_right,
                                uint64_t * const num_going_left,
                                uint64_t * const num_going_right) {
-        uint64_t num_samples_to_evaluate = split_feature_values.rows();
+        datapoint_idx_t num_samples_to_evaluate = split_feature_values.rows();
         if (candidate_split_directions->size() != num_samples_to_evaluate) {
             throw new std::logic_error("candidate_split_directions size doesn't match number of sampels to split on");
         }
@@ -21,7 +21,7 @@ namespace garf {
         uint64_t left_idx = 0;
         uint64_t right_idx = 0;
 
-        for (uint64_t i = 0; i < num_samples_to_evaluate; i++) {
+        for (datapoint_idx_t i = 0; i < num_samples_to_evaluate; i++) {
             if (split_feature_values(i, split_feature) <= thresh) {
                 candidate_split_directions->coeffRef(i) = LEFT;
                 indices_going_left->coeffRef(left_idx) = data_indices(i);
@@ -111,7 +111,7 @@ namespace garf {
                                       &num_going_left, &num_going_right);
                 std::cout << "split #" << split_idx << " thresh #" << thresh_idx << " = " << split_thresholds(split_idx, thresh_idx);
                 std::cout << ", candidate split directions = ";
-                for (uint64_t i = 0; i < num_in_parent; i++) {
+                for (datapoint_idx_t i = 0; i < num_in_parent; i++) {
                     if (candidate_split_directions(i) == LEFT) {
                         std::cout << "L";
                     } else {

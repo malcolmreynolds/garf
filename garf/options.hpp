@@ -6,7 +6,7 @@ namespace garf {
     /* Options which work at the top level of training - how
       many trees to make, what data to give them etc */
     struct ForestOptions {
-        uint32_t max_num_trees;
+        tree_idx_t max_num_trees;
         bool bagging;
         ForestOptions() : max_num_trees(2), bagging(false) {}
     };
@@ -14,8 +14,8 @@ namespace garf {
     /* Options which are needed inside a tree - ie when to stop splitting.
       These are needed regardless of how we are doing the splitting */
     struct TreeOptions {
-        uint64_t max_depth;
-        uint64_t min_sample_count; // don't bother with a split if
+        depth_idx_t max_depth;
+        datapoint_idx_t min_sample_count; // don't bother with a split if
         double min_variance;
         TreeOptions() : max_depth(2), min_sample_count(10), min_variance(0.00001) {}
     };

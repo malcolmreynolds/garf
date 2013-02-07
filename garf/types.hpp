@@ -1,7 +1,7 @@
 #ifndef GARF_TYPES_HPP
 #define GARF_TYPES_HPP
 
-#include <Eigen/Dense>
+// #include <Eigen/Dense>
 #include <Eigen/Core>
 // #include <Eigen/VectorwiseOp.h>
 
@@ -20,15 +20,17 @@ using Eigen::MatrixXd;
 namespace garf {
 
     // 64 bit for everything. This will probably suck on 32 bit machines, but whatever
+    typedef long eigen_idx_t;
     typedef double feat_t;
     typedef double label_t;
-    typedef uint64_t tree_idx_t;
-    typedef uint64_t node_idx_t;
-    typedef uint64_t label_idx_t;
-    typedef uint64_t feat_idx_t;
-    typedef uint64_t depth_idx_t;
-    typedef uint64_t datapoint_idx_t;
-    typedef uint64_t split_idx_t;
+    typedef eigen_idx_t tree_idx_t;
+    typedef eigen_idx_t node_idx_t;
+    typedef eigen_idx_t label_idx_t;
+    typedef eigen_idx_t feat_idx_t;
+    typedef eigen_idx_t depth_idx_t;
+    typedef eigen_idx_t data_dim_idx_t;
+    typedef eigen_idx_t datapoint_idx_t;
+    typedef eigen_idx_t split_idx_t;
     typedef enum { LEFT=0, RIGHT=1 } split_dir_t;
 
     typedef Eigen::MatrixXd feature_matrix;

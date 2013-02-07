@@ -5,6 +5,8 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
 
+#include <stdexcept>
+
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
@@ -19,10 +21,10 @@ namespace garf {
 
     /* This is stuff we don't specify in advance, but we can query any forest about it. */
     struct ForestStats {
-        uint64_t data_dimensions;
-        uint64_t label_dimensions;
-        uint64_t num_training_datapoints;
-        uint64_t num_trees;
+        data_dim_idx_t data_dimensions;
+        label_idx_t label_dimensions;
+        datapoint_idx_t num_training_datapoints;
+        tree_idx_t num_trees;
         inline ForestStats() : data_dimensions(-1), label_dimensions(-1), num_training_datapoints(-1), num_trees(0) {}
     };
 

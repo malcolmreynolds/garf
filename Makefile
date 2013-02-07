@@ -1,4 +1,3 @@
-
 CXX=clang++
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Wextra -std=c++0x   -stdlib=libc++

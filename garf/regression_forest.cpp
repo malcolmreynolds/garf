@@ -1,4 +1,4 @@
-#include <stdexcept>
+
 // #include <glog/logging.h>
 
 namespace garf {
@@ -168,11 +168,6 @@ namespace garf {
                 labels_out->row(feat_vec_idx) /= forest_stats.num_trees;
             } else {
 
-                // Get some refs which hopefully get rid of needing to call row() 
-                // with the same argument repeatedly
-                // label_vector & mean_row = labels_out->row(feat_vec_idx);
-                // label_vector & variance_row = variances_out->row(feat_vec_idx);
-
                 // Compute mean and variance at the same time. We are using iterative method for calculating each
                 // online (this is most numerically stable) - see http://www-uxsup.csx.cam.ac.uk/~fanf2/hermes/doc/antiforgery/stats.pdf
                 label_vector mu_n(forest_stats.label_dimensions);
@@ -191,9 +186,13 @@ namespace garf {
                     variances_out->row(feat_vec_idx) += (leaf_node_mean - mu_n_minus_1).cwiseProduct(leaf_node_mean - mu_n);
                 }
 
+                // FIXME: swap the two lines below when I have a version of clang++ with the bug fixed
+                // labels_out->row(feat_vec_idx) = mu_n;
+                labels_out->row(feat_vec_idx).operator=(mu_n);
+// 
                 // Need this division since the calculation above computes S = num_datapoints * variance.
-                // After this division, we just have the variance
-                labels_out->row(feat_vec_idx) += mu_n;
+                // After this division, we just have the variance which is what we want. Let users square root later
+                // if they want.
                 variances_out->row(feat_vec_idx) /= static_cast<double>(forest_stats.num_trees);
             }
 
