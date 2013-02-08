@@ -9,27 +9,6 @@
 
 namespace garf {
 
-// class Random{
-// public:
-//  static float DrawNormal(){
-//    return normal(engine);
-//  }
- 
-//  static float DrawUniform(){
-//    return uniform(engine);
-//  }
-
-//  static float DrawUniform(float m, float M){
-//    return m+uniform(engine)*(M-m);
-//  }
- 
-//  static std::mt19937_64 engine;
-//  static std::uniform_real_distribution<float> uniform;
-//  static std::normal_distribution<float> normal;
-// };
- 
-
-
     class SplFitter {
     public:
         const SplitOptions split_opts;

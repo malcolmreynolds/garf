@@ -159,7 +159,7 @@ namespace garf {
         // I have chosen to do it this way as it means we only need to do the actual predictions - working out which leaf
         // node a particular datapoint lands at - the minimum number of times.
         for (feat_idx_t feat_vec_idx = 0; feat_vec_idx < num_datapoints_to_predict; feat_vec_idx++) {
-            std::cout << "predicting on datapoint #" << feat_vec_idx << ": " << features.row(feat_vec_idx).transpose() << std::endl;
+            std::cout << "predicting on datapoint #" << feat_vec_idx << ": " << features.row(feat_vec_idx) << std::endl;
             // for each datapoint, we want to work out the set of leaf nodes it reaches, 
             // then worry about whether we are calculating variances or whatever else. We fill our scoped_array
             // with pointers to the leaf node reached by each datapoint

@@ -3,6 +3,12 @@
 
 #include "types.hpp"
 
+#ifdef GARF_SERIALIZE_ENABLE
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#endif
+
+
 namespace garf {
 
 
@@ -31,6 +37,15 @@ namespace garf {
         AxisAlignedSplt() : feat_idx(-1), thresh(NaN) {} 
         inline char const * name() const { return "axis_aligned"; }
         inline friend std::ostream& operator<< (std::ostream& stream, const AxisAlignedSplt& aas);
+#ifdef GARF_SERIALIZE_ENABLE
+    private:
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive & ar, const unsigned int version) {
+            ar & feat_idx;
+            ar & thresh;
+        }
+#endif
     };
 
     // splitter which looks at two dimensions scaled by two weights, compares to a single threshold
@@ -52,6 +67,18 @@ namespace garf {
         TwoDimSplt(): feat_1(-1), feat_2(-1), weight_feat_1(NaN), weight_feat_2(NaN), thresh(NaN) {}
         inline char const * name() const { return "2_dim_hyp"; }
         inline friend std::ostream& operator<< (std::ostream& stream, const TwoDimSplt& two_ds);
+#ifdef GARF_SERIALIZE_ENABLE
+    private:
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive & ar, const unsigned int version) {
+            ar & feat_1;
+            ar & feat_2;
+            ar & weight_feat_1;
+            ar & weight_feat_2;
+            ar & thresh;
+        }
+#endif
     };
 }
 
