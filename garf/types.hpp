@@ -33,6 +33,7 @@ namespace garf {
     typedef Eigen::MatrixXd feature_matrix;
     typedef Eigen::VectorXd feature_vector;
     typedef Eigen::MatrixXd label_matrix;
+    typedef Eigen::MatrixXd variance_matrix;
     typedef Eigen::VectorXi indices_vector;
     typedef Eigen::Matrix<node_idx_t, Eigen::Dynamic, Eigen::Dynamic> tree_idx_matrix;
     typedef Eigen::Matrix<label_t, Eigen::Dynamic, 1> label_vector;

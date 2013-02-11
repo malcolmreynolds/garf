@@ -3,6 +3,11 @@
 
 #include <fstream>
 #include <Eigen/Core>
+
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/archive/text_oarchive.hpp> 
+#include <boost/archive/text_iarchive.hpp> 
+
 #include "types.hpp"
 
 using namespace Eigen;
@@ -30,9 +35,9 @@ namespace garf {
 
     // Utility function which means we don't need to open an fstream, etc
     template<class SplitT, class SplFitterT>
-    void RegressionForest<SplitT, SplFitterT>::save_forest(std::string filename) {
-        ofstream ofs(filename);
-        boost::archive::text_Archive oa(ofs);
+    void RegressionForest<SplitT, SplFitterT>::save_forest(std::string filename) const {
+        std::ofstream ofs(filename);
+        boost::archive::text_oarchive oa(ofs);
         ofs << *this;
         std::cout << "forest saved to " << filename << std::endl;
     }
@@ -43,8 +48,8 @@ namespace garf {
     template<class SplitT, class SplFitterT>
     void RegressionForest<SplitT, SplFitterT>::load_forest(std::string filename) {
         clear();
-        ifstream ifs(filename);
-        boost::archive::text_archive ia(ifs);
+        std::ifstream ifs(filename);
+        boost::archive::text_iarchive ia(ifs);
         ifs >> *this;
         std::cout << "forest loaded from " << filename << std::endl;
     }
@@ -80,6 +85,7 @@ namespace garf {
             ar << left;
             ar << right;
         }
+
     }
 
     // Load a RegressionNode
@@ -103,10 +109,14 @@ namespace garf {
 
             // Fix the parent pointers of the loaded children. This is the recommended
             // way of setting a const variable according to the Boost.serialzie
-            RegressionNode<SplitT, SplFitterT> ** dummy_left = const_cast<RegressionNode<SplitT, SplFitterT> **>(&(left->parent));
-            *dummy_left = this;
-            RegressionNode<SplitT, SplFitterT> ** dummy_right = const_cast<RegressionNode<SplitT, SplFitterT> **>(&(right->parent));
-            *dummy_right = this;
+            RegressionNode<SplitT, SplFitterT> ** left_child_parent = const_cast<RegressionNode<SplitT, SplFitterT> **>(&(left->parent));
+            *left_child_parent = this;
+            RegressionNode<SplitT, SplFitterT> ** right_child_parent = const_cast<RegressionNode<SplitT, SplFitterT> **>(&(right->parent));
+            *right_child_parent = this;
+        }
+        else {
+            left.reset();
+            right.reset();
         }
     }
 
@@ -157,8 +167,8 @@ namespace garf {
     template<class Archive>
     void MultiDimGaussianX::serialize(Archive & ar, const unsigned int version) {
         ar & const_cast<eigen_idx_t &>(dimensions);
-        MatrixXd mean;
-        MatrixXd cov;
+        ar & mean;
+        ar & cov;
     }
 
     // Load & save tree options

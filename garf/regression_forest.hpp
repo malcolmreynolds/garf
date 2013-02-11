@@ -5,8 +5,6 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
 
-#include <boost/serialization/shared_ptr.hpp>
-
 #include <stdexcept>
 
 #include <Eigen/Dense>
@@ -189,9 +187,12 @@ namespace garf {
                      label_matrix * const variances_out = NULL, tree_idx_matrix * const leaf_indices_output = NULL) const;
         inline bool is_trained() const { return trained; }
 
-        // Need different template parameters here to avoid shadowing the ones we currently have
+        // Need different template parameters here to avoid shadowing the ones for the whole class
         template<class S, class ST>
         friend std::ostream& operator<< (std::ostream& stream, const RegressionForest<S, ST> & frst);
+
+        // Get a const reference to the forest stats, so they can't be changed
+        inline const ForestStats & stats() const { return forest_stats; }
 
 #ifdef GARF_SERIALIZE_ENABLE
         void save_forest(std::string filename) const;
