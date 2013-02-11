@@ -163,11 +163,11 @@ namespace garf {
     // if we don't know the dimensionality in advance
     class MultiDimGaussianX {
     public:
-        const uint32_t dimensions;
+        const eigen_idx_t dimensions;
         MatrixXd mean;
         MatrixXd cov;
 
-        inline MultiDimGaussianX(uint32_t _dimensions) : dimensions(_dimensions) {
+        inline MultiDimGaussianX(eigen_idx_t _dimensions) : dimensions(_dimensions) {
             initialise_params();
         }
 
@@ -178,9 +178,9 @@ namespace garf {
             cov.setZero();
         }
 
-        inline MultiDimGaussianX(uint32_t _dimensions,
-                                MatrixXd _mean,
-                                MatrixXd _cov) : dimensions(_dimensions) {
+        inline MultiDimGaussianX(eigen_idx_t _dimensions,
+                                 MatrixXd _mean,
+                                 MatrixXd _cov) : dimensions(_dimensions) {
             // Check size of the provided mean and cov..
             // This complicated test allows to have the mean vector either way round
             if (!(((_mean.rows() == dimensions) && (_mean.cols() == 1)) ||
@@ -198,7 +198,7 @@ namespace garf {
         }
 
         inline void check_data_dimensionality(const MatrixXd & input_data) const {
-            uint32_t input_data_dimensionality = input_data.cols();
+            eigen_idx_t input_data_dimensionality = input_data.cols();
             if (input_data_dimensionality != dimensions) {
                 throw std::invalid_argument("input data dimensionality doesn't match in fit_params");   
             }
@@ -212,7 +212,7 @@ namespace garf {
          */
         inline void fit_params(const feature_matrix & input_data) {
             check_data_dimensionality(input_data);
-            uint32_t num_input_datapoints = input_data.rows();
+            eigen_idx_t num_input_datapoints = input_data.rows();
 
             // temporary for the efficient / stable computation:
             // http://www.johndcook.com/standard_deviation.html 
@@ -222,7 +222,7 @@ namespace garf {
             mean = input_data.row(0);
 
             // recurrence relation, see http://prod.sandia.gov/techlib/access-control.cgi/2008/086212.pdf
-            for (uint32_t k = 1; k < num_input_datapoints; k++) {
+            for (eigen_idx_t k = 1; k < num_input_datapoints; k++) {
                 mean_k_minus_1 = mean;
                 // cov_k_minus_1 = cov;
 
@@ -230,9 +230,9 @@ namespace garf {
                 mean = mean_k_minus_1 + (input_data.row(k).transpose() - mean_k_minus_1) / static_cast<double>(k+1);
 
                 // update the covariance
-                for (uint32_t d1 = 0; d1 < dimensions; d1++) {
+                for (eigen_idx_t d1 = 0; d1 < dimensions; d1++) {
                     double d1_diff = input_data(k, d1) - mean_k_minus_1(d1);
-                    for(uint32_t d2 = d1; d2 < dimensions; d2++) {
+                    for(eigen_idx_t d2 = d1; d2 < dimensions; d2++) {
                         double addition = (k / static_cast<double>(k+1)) * d1_diff
                                         * (input_data(k, d2) - mean_k_minus_1(d2));
                         cov(d1, d2) += addition;
@@ -241,8 +241,8 @@ namespace garf {
                 }
 
                 // We have only calculated the upper triangular portion of the answer. Copy into the lower triangular bit
-                for (uint32_t d1 = 0; d1 < dimensions; d1++) { 
-                    for (uint32_t d2 = (d1 + 1); d2 < dimensions; d2++) {
+                for (eigen_idx_t d1 = 0; d1 < dimensions; d1++) { 
+                    for (eigen_idx_t d2 = (d1 + 1); d2 < dimensions; d2++) {
                         cov(d2, d1) = cov(d1, d2);
                     }
                 }
@@ -257,14 +257,14 @@ namespace garf {
            certain rows of the data matrix should be considered */
         inline void fit_params(const feature_matrix & input_data, const indices_vector & valid_indices) {
             check_data_dimensionality(input_data);
-            uint32_t num_input_datapoints = valid_indices.size();
+            eigen_idx_t num_input_datapoints = valid_indices.size();
 
             MatrixXd mean_k_minus_1(dimensions, 1);
             initialise_params();
 
             mean = input_data.row(valid_indices(0));
 
-            for (uint32_t k = 1; k < num_input_datapoints; k++) {
+            for (eigen_idx_t k = 1; k < num_input_datapoints; k++) {
                 int data_idx = valid_indices(k);
                 mean_k_minus_1 = mean;
 
@@ -272,9 +272,9 @@ namespace garf {
                 mean = mean_k_minus_1 + (input_data.row(data_idx).transpose() - mean_k_minus_1) / static_cast<double>(k + 1);
 
                 // update the covariance
-                for (uint32_t d1 = 0; d1 < dimensions; d1++) {
+                for (eigen_idx_t d1 = 0; d1 < dimensions; d1++) {
                     double d1_diff = input_data(data_idx, d1) - mean_k_minus_1(d1);
-                    for(uint32_t d2 = d1; d2 < dimensions; d2++) {
+                    for(eigen_idx_t d2 = d1; d2 < dimensions; d2++) {
                         double addition = (k / static_cast<double>(k+1)) * d1_diff
                                         * (input_data(data_idx, d2) - mean_k_minus_1(d2));
                         cov(d1, d2) += addition;
@@ -283,8 +283,8 @@ namespace garf {
                 }
 
                 // We have only calcualted the upper triangular portion of the answer. Copy into the lower triangular bit
-                for (uint32_t d1 = 0; d1 < dimensions; d1++) { 
-                    for (uint32_t d2 = (d1 + 1); d2 < dimensions; d2++) {
+                for (eigen_idx_t d1 = 0; d1 < dimensions; d1++) { 
+                    for (eigen_idx_t d2 = (d1 + 1); d2 < dimensions; d2++) {
                         cov(d2, d1) = cov(d1, d2);
                     }
                 }
@@ -294,7 +294,7 @@ namespace garf {
 
         /* As above again, but if only some of the indices in valid_indices are valid. For memory efficiency,
            sometimes it is better to allocate a vector that is too big, and then only use the first few elements) */
-        inline void fit_params(const feature_matrix & input_data, const indices_vector & valid_indices, const uint64_t num_input_datapoints) {
+        inline void fit_params(const feature_matrix & input_data, const indices_vector & valid_indices, const eigen_idx_t num_input_datapoints) {
             check_data_dimensionality(input_data);
 
             MatrixXd mean_k_minus_1(dimensions, 1);
@@ -302,7 +302,7 @@ namespace garf {
 
             mean = input_data.row(valid_indices(0));
 
-            for (uint64_t k = 1; k < num_input_datapoints; k++) {
+            for (eigen_idx_t k = 1; k < num_input_datapoints; k++) {
                 int data_idx = valid_indices(k);
                 mean_k_minus_1 = mean;
 
@@ -310,9 +310,9 @@ namespace garf {
                 mean = mean_k_minus_1 + (input_data.row(data_idx).transpose() - mean_k_minus_1) / static_cast<double>(k + 1);
 
                 // update the covariance
-                for (uint64_t d1 = 0; d1 < dimensions; d1++) {
+                for (eigen_idx_t d1 = 0; d1 < dimensions; d1++) {
                     double d1_diff = input_data(data_idx, d1) - mean_k_minus_1(d1);
-                    for(uint64_t d2 = d1; d2 < dimensions; d2++) {
+                    for(eigen_idx_t d2 = d1; d2 < dimensions; d2++) {
                         double addition = (k / static_cast<double>(k+1)) * d1_diff
                                         * (input_data(data_idx, d2) - mean_k_minus_1(d2));
                         cov(d1, d2) += addition;
@@ -321,8 +321,8 @@ namespace garf {
                 }
 
                 // We have only calcualted the upper triangular portion of the answer. Copy into the lower triangular bit
-                for (uint64_t d1 = 0; d1 < dimensions; d1++) { 
-                    for (uint64_t d2 = (d1 + 1); d2 < dimensions; d2++) {
+                for (eigen_idx_t d1 = 0; d1 < dimensions; d1++) { 
+                    for (eigen_idx_t d2 = (d1 + 1); d2 < dimensions; d2++) {
                         cov(d2, d1) = cov(d1, d2);
                     }
                 }
@@ -338,16 +338,16 @@ namespace garf {
 
             // Two pass algorithm - calculate mean first. Use eigen to sum down
             // each column
-            for (uint32_t d = 0; d < dimensions; d++) {
+            for (eigen_idx_t d = 0; d < dimensions; d++) {
                 mean(d) = input_data.col(d).sum();
             }
             mean /= num_input_datapoints;
 
 
-            for (uint32_t i = 0; i < num_input_datapoints; i++) {
+            for (eigen_idx_t i = 0; i < num_input_datapoints; i++) {
                 const RowVectorXd data_point = input_data.row(i);
-                for (uint32_t d1 = 0; d1 < dimensions; d1++) {
-                    for (uint32_t d2 = 0; d2 < dimensions; d2++) {
+                for (eigen_idx_t d1 = 0; d1 < dimensions; d1++) {
+                    for (eigen_idx_t d2 = 0; d2 < dimensions; d2++) {
                         cov(d1, d2) += (data_point(d1) - mean(d1)) * (data_point(d2) - mean(d2));
                     }
                 }
@@ -366,7 +366,7 @@ namespace garf {
 
         friend std::ostream& operator<< (std::ostream& stream, const MultiDimGaussianX& mdg) {
             stream << "[mean[" << mdg.mean.transpose() << "]:cov[";
-            for (uint32_t r = 0; r < mdg.dimensions; r++) {
+            for (eigen_idx_t r = 0; r < mdg.dimensions; r++) {
                 stream << mdg.cov.row(r);
                 if (r != (mdg.dimensions - 1)) { // if we have more rows to go..
                     stream << "; ";
@@ -375,6 +375,14 @@ namespace garf {
             stream << "]]";
             return stream;
         }
+
+#ifdef GARF_SERIALIZE_ENABLE
+    private:
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void serialize(Archive & ar, const unsigned int version);
+#endif
 
 
     };

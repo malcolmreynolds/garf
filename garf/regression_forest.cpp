@@ -5,7 +5,7 @@ namespace garf {
 
     template<class SplitT, class SplFitterT>
     void RegressionForest<SplitT, SplFitterT>::train(const feature_matrix & features, const label_matrix & labels) {
-        if (is_trained) {
+        if (trained) {
             throw std::invalid_argument("forest is already trained");
         }
 
@@ -50,7 +50,7 @@ namespace garf {
         }
 
         // We are done, so set the forest as trained
-        is_trained = true;
+        trained = true;
     }
 
     // Clears everything in the forest, ie forgets all the training
@@ -59,7 +59,7 @@ namespace garf {
         std::cout << "clearing forest of " << forest_stats.num_trees << " trees." << std::endl;
         trees.reset();
         forest_stats.num_trees = 0;
-        is_trained = false;
+        trained = false;
     }
 
     // Given a single feature vector, send it down each tree in turn and fill the given scoped 
@@ -120,7 +120,7 @@ namespace garf {
                                                        label_matrix * const labels_out,
                                                        label_matrix * const variances_out,
                                                        tree_idx_matrix * const leaf_indices_out) const {
-        if (!is_trained) {
+        if (!trained) {
             throw std::invalid_argument("cannot predict, forest not trained yet");
         }
 
@@ -208,4 +208,19 @@ namespace garf {
             }
         }
     }
+
+    template<class SplitT, class SplFitterT>
+    inline std::ostream& operator<< (std::ostream& stream, const RegressionForest<SplitT, SplFitterT> & frst) {
+        stream << "[RegFrst:";
+        if (!frst.trained) {
+            stream << "<not trained>]";
+            return stream;
+        }
+
+        stream << frst.forest_stats.num_trees << " trees]";
+        return stream;
+    }
+
+
+
 }

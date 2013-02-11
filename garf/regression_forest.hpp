@@ -5,6 +5,8 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
 
+#include <boost/serialization/shared_ptr.hpp>
+
 #include <stdexcept>
 
 #include <Eigen/Dense>
@@ -19,13 +21,20 @@
 
 namespace garf {
 
-    /* This is stuff we don't specify in advance, but we can query any forest about it. */
+    // This is stuff about a forest we don't specify in advance,
+    //but once a forest is trained we can query it..
     struct ForestStats {
         data_dim_idx_t data_dimensions;
         label_idx_t label_dimensions;
         datapoint_idx_t num_training_datapoints;
         tree_idx_t num_trees;
         inline ForestStats() : data_dimensions(-1), label_dimensions(-1), num_training_datapoints(-1), num_trees(0) {}
+#ifdef GARF_SERIALIZE_ENABLE
+    private:
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive & ar, const unsigned int version);
+#endif
     };
 
     template<class SplitT, class SplFitterT> class RegressionTree;
@@ -42,27 +51,32 @@ namespace garf {
         boost::shared_ptr<RegressionNode<SplitT, SplFitterT> > left;
         boost::shared_ptr<RegressionNode<SplitT, SplFitterT> > right;
 
+        // Keep track of our identity and place in tree
+        const node_idx_t node_id;
+        const depth_idx_t depth;
+
         // Label distribution
         MultiDimGaussianX dist;
 
         // Which training data points passed through here
         indices_vector training_data_indices;
 
-        // Keep track of our identity and place in tree
-        const node_idx_t node_id;
-        const depth_idx_t depth;
-
         // The split object. This just holds the raw data necessary for
         // splitting - all intermediate data used while training should
         // be gone at test time leaving just the essentials
         SplitT split;
+
+        // This kind of sucks but to serialize we need a flag as to whether we 
+        // save & load child nodes - easy when saving, but when loading how
+        // can we know?
+        bool is_leaf;
 
         // When constructing, the only thing we should need to store is the parent (this
         // is allowed to be null, when we have the root node
         RegressionNode(node_idx_t _node_id,
                        const RegressionNode<SplitT, SplFitterT> * const _parent,
                        label_idx_t _num_label_dims, depth_idx_t _depth)
-            : parent(_parent), dist(_num_label_dims), node_id(_node_id), depth(_depth) {};
+            : parent(_parent), node_id(_node_id), depth(_depth), dist(_num_label_dims), is_leaf(true) {};
         inline ~RegressionNode() {};
 
         inline void train() { std::cout << "decoy train()" << std::endl; }
@@ -84,8 +98,29 @@ namespace garf {
         inline uint32_t num_training_datapoints() const { return training_data_indices.size(); }
         inline node_idx_t left_child_index() const { return (2 * node_id) + 1; }
         inline node_idx_t right_child_index() const { return (2 * node_id) + 2; }
-        inline bool is_leaf() const { return left.get() == NULL; }
+
+        template<class S, class ST>
+        friend std::ostream& operator<< (std::ostream& stream, const RegressionNode<S, ST> & node);
+
+#ifdef GARF_SERIALIZE_ENABLE
+        // Zero arg constructor just for serialization of things inside a shared_ptr
+        inline RegressionNode() : parent(NULL), node_id(-1), depth(-1), dist(0) {}
+    private:
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void save(Archive & ar, const unsigned int version) const;
+
+        template<class Archive>
+        void load(Archive & ar, const unsigned int version);
+
+        BOOST_SERIALIZATION_SPLIT_MEMBER();
+#endif
     };
+
+
+    // template<A, B>
+    // BOOST_SERIALIZATION_SHARED_PTR(RegressionNode)
 
 
     template<class SplitT, class SplFitterT>
@@ -102,6 +137,17 @@ namespace garf {
         // Given some data vector, return a const reference to the node it would stop at
         const RegressionNode<SplitT, SplFitterT> & evaluate(const feature_vector & fvec,
                                                             const PredictOptions & predict_options) const;
+
+        template<class S, class ST>
+        friend std::ostream& operator<< (std::ostream& stream, const RegressionTree<S, ST> & tree);
+
+#ifdef GARF_SERIALIZE_ENABLE
+    private:
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void serialize(Archive & ar, const unsigned int version);
+#endif
     };
 
        
@@ -112,7 +158,7 @@ namespace garf {
     // main interface down for now 
     template<class SplitT, class SplFitterT>
     class RegressionForest {
-        bool is_trained;
+        bool trained;
 
         ForestStats forest_stats;
 
@@ -133,7 +179,7 @@ namespace garf {
         SplitOptions split_options;
         PredictOptions predict_options;
 
-        RegressionForest() : is_trained(false), forest_options(), tree_options(), split_options(), predict_options()  {};
+        RegressionForest() : trained(false), forest_options(), tree_options(), split_options(), predict_options()  {};
         inline ~RegressionForest() {}
 
         // Below here is the main public API for interacting with forests
@@ -141,6 +187,24 @@ namespace garf {
         void train(const feature_matrix & features, const label_matrix & labels);
         void predict(const feature_matrix & features, label_matrix * const labels_out,
                      label_matrix * const variances_out = NULL, tree_idx_matrix * const leaf_indices_output = NULL) const;
+        inline bool is_trained() const { return trained; }
+
+        // Need different template parameters here to avoid shadowing the ones we currently have
+        template<class S, class ST>
+        friend std::ostream& operator<< (std::ostream& stream, const RegressionForest<S, ST> & frst);
+
+#ifdef GARF_SERIALIZE_ENABLE
+    private:
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void save(Archive & ar, const unsigned int version) const;
+
+        template<class Archive>
+        void load(Archive & ar, const unsigned int version);
+
+        BOOST_SERIALIZATION_SPLIT_MEMBER();
+#endif
     };
 }
 
@@ -150,6 +214,9 @@ namespace garf {
 #include "regression_forest.cpp"
 #include "regression_tree.cpp"
 #include "regression_node.cpp"
+
+// Contains all the serialization
+#include "serialization.cpp"
 
 
 #endif

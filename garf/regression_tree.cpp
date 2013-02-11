@@ -40,7 +40,7 @@ namespace garf {
 
         split_dir_t dir;
         while (current_depth < predict_opts.maximum_depth &&
-               !current_node->is_leaf()) {
+               !current_node->is_leaf) {
             std::cout << "t[" << tree_id << ":" << current_node->node_id << "], evaluating..." << std::endl;
             dir = current_node->split.evaluate(fvec);
             if (dir == LEFT) {

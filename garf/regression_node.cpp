@@ -52,6 +52,8 @@ namespace garf {
             return;
         }
 
+        is_leaf = false;
+
         // If we are here then assume we found decent splits, indices of which
         // are stored in left_child_indices and right_child_indices. First create child nodes, then
         // do the training. FIXME: we could increase efficiency (slightly!) but

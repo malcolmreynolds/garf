@@ -1,6 +1,10 @@
 #include "gtest/gtest.h"
 // #include <glog/logging.h>
 
+
+#include <iostream>
+#include <fstream>
+
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
@@ -74,61 +78,90 @@ void test_forest_with_data(garf::RegressionForest<garf::AxisAlignedSplt, garf::A
     }
 }
 
-TEST(ForestTest, RegTest1) {
-    garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest;
-    forest.forest_options.max_num_trees = 10;
-    forest.tree_options.max_depth = 6;
-    forest.tree_options.min_sample_count = 2;
+// TEST(ForestTest, RegTest1) {
+//     garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest;
+//     forest.forest_options.max_num_trees = 10;
+//     forest.tree_options.max_depth = 6;
+//     forest.tree_options.min_sample_count = 2;
 
-    uint64_t num_train_datapoints = 1000;
-    uint64_t num_test_datapoints = 100;
-    uint64_t data_dims = 2;
-    uint64_t label_dims = 1;
-    double data_scaler = 2.0;
-    double noise_variance = 0.1;
-    double answer_tolerance= 1.0;
+//     uint64_t num_train_datapoints = 1000;
+//     uint64_t num_test_datapoints = 100;
+//     uint64_t data_dims = 2;
+//     uint64_t label_dims = 1;
+//     double data_scaler = 2.0;
+//     double noise_variance = 0.1;
+//     double answer_tolerance= 1.0;
 
-    // 1D data, 1D labels
-    test_forest_with_data(forest, make_1d_labels_from_2d_data_squared_diff,
-                          num_train_datapoints, num_test_datapoints,
-                          data_dims, label_dims, data_scaler,
-                          noise_variance, answer_tolerance);
+//     // 1D data, 1D labels
+//     test_forest_with_data(forest, make_1d_labels_from_2d_data_squared_diff,
+//                           num_train_datapoints, num_test_datapoints,
+//                           data_dims, label_dims, data_scaler,
+//                           noise_variance, answer_tolerance);
+// }
+
+// TEST(ForestTest, RegTest2) {
+//     garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest;
+//     forest.forest_options.max_num_trees = 10;
+//     forest.tree_options.max_depth = 6;
+//     forest.tree_options.min_sample_count = 2;
+
+//     uint64_t num_train_datapoints = 1000;
+//     uint64_t num_test_datapoints = 100;
+//     uint64_t data_dims = 1;
+//     uint64_t label_dims = 1;
+//     double data_scaler = 2.0;
+//     double noise_variance = 0.1;
+//     double answer_tolerance = 0.1;
+
+//     // 1D data, 1D labels
+//     test_forest_with_data(forest, make_1d_labels_from_1d_data_abs,
+//                           num_train_datapoints, num_test_datapoints,
+//                           data_dims, label_dims, data_scaler,
+//                           noise_variance, answer_tolerance);
+// }
+
+
+void save_and_restore_forest(const garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> & forest_to_save,
+                             garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> * forest_to_load_into,
+                             std::string filename) {
+    {
+        std::ofstream ofs(filename);
+        boost::archive::text_oarchive oa(ofs);
+        oa << forest_to_save;
+    }
+    std::cout << "forest saved" << std::endl;
+
+    std::cout << "before loading forest_to_load_into = " << *forest_to_load_into << std::endl;
+
+    {
+        std::ifstream ifs(filename);
+        boost::archive::text_iarchive ia(ifs);
+        ia >> *forest_to_load_into;
+    }
+    std::cout << "forest loaded: " << *forest_to_load_into << std::endl;
 }
-
-TEST(ForestTest, RegTest2) {
-    garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest;
-    forest.forest_options.max_num_trees = 10;
-    forest.tree_options.max_depth = 6;
-    forest.tree_options.min_sample_count = 2;
-
-    uint64_t num_train_datapoints = 1000;
-    uint64_t num_test_datapoints = 100;
-    uint64_t data_dims = 1;
-    uint64_t label_dims = 1;
-    double data_scaler = 2.0;
-    double noise_variance = 0.1;
-    double answer_tolerance = 0.1;
-
-    // 1D data, 1D labels
-    test_forest_with_data(forest, make_1d_labels_from_1d_data_abs,
-                          num_train_datapoints, num_test_datapoints,
-                          data_dims, label_dims, data_scaler,
-                          noise_variance, answer_tolerance);
-}
-
 
 
 TEST(ForestTest, Serialize) {
-    uint64_t data_elements = 100;
+    uint64_t data_elements = 10;
     uint64_t data_dims = 2;
     uint64_t label_dims = 1;
     MatrixXd data(data_elements, data_dims);
     data.setRandom();
 
     MatrixXd labels(data_elements, label_dims);
+    make_1d_labels_from_2d_data_squared_diff(data, labels);
     labels.setRandom();
 
-    garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest;
+    garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest1;
+    garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest2;
+
+
+    forest1.train(data, labels);
+
+    // Serialises forest1 out to disk, loads it back into forest 2
+    save_and_restore_forest(forest1, &forest2, "test_serialize.forest");
+
     EXPECT_TRUE(true);
 }
 
