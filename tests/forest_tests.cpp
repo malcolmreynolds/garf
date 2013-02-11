@@ -174,29 +174,6 @@ TEST(ForestTest, RegTest2) {
                           noise_variance, answer_tolerance);
 }
 
-
-template<class ForestT>
-void save_and_restore_forest(const ForestT & forest_to_save,
-                             ForestT * forest_to_load_into,
-                             std::string filename) {
-    {
-        std::ofstream ofs(filename);
-        boost::archive::text_oarchive oa(ofs);
-        oa << forest_to_save;
-    }
-    std::cout << "forest saved" << std::endl;
-
-    std::cout << "before loading forest_to_load_into = " << *forest_to_load_into << std::endl;
-
-    {
-        std::ifstream ifs(filename);
-        boost::archive::text_iarchive ia(ifs);
-        ia >> *forest_to_load_into;
-    }
-    std::cout << "forest loaded: " << *forest_to_load_into << std::endl;
-}
-
-
 TEST(ForestTest, Serialize) {
     uint64_t data_elements = 1000;
     uint64_t data_dims = 2;
@@ -216,9 +193,8 @@ TEST(ForestTest, Serialize) {
 
 
     forest1.train(data, labels);
-
-    // Serialises forest1 out to disk, loads it back into forest 2
-    save_and_restore_forest(forest1, &forest2, "test_serialize.forest");
+    forest1.save_forest("test_serialize.forest");
+    forest2.load_forest("test_serialize.forest");
 
     assert_forest_predictions_match<forest_ax_align>(forest1, forest2, data);
 }

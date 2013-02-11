@@ -38,7 +38,7 @@ namespace garf {
     void RegressionForest<SplitT, SplFitterT>::save_forest(std::string filename) const {
         std::ofstream ofs(filename);
         boost::archive::text_oarchive oa(ofs);
-        ofs << *this;
+        oa << *this;
         std::cout << "forest saved to " << filename << std::endl;
     }
 
@@ -50,7 +50,7 @@ namespace garf {
         clear();
         std::ifstream ifs(filename);
         boost::archive::text_iarchive ia(ifs);
-        ifs >> *this;
+        ia >> *this;
         std::cout << "forest loaded from " << filename << std::endl;
     }
 
