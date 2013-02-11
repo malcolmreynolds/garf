@@ -34,8 +34,8 @@ namespace boost {
 namespace garf {
 
     // Utility function which means we don't need to open an fstream, etc
-    template<class SplitT, class SplFitterT>
-    void RegressionForest<SplitT, SplFitterT>::save_forest(std::string filename) const {
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::save_forest(std::string filename) const {
         std::ofstream ofs(filename);
         boost::archive::text_oarchive oa(ofs);
         oa << *this;
@@ -45,8 +45,8 @@ namespace garf {
     // Load a forest from disk into the forest this is called on. Note, this will
     // delete the current forest, so it makes sense to call this on a forest which
     // isn't currently trained - but there is nothing to enforce this. 
-    template<class SplitT, class SplFitterT>
-    void RegressionForest<SplitT, SplFitterT>::load_forest(std::string filename) {
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::load_forest(std::string filename) {
         clear();
         std::ifstream ifs(filename);
         boost::archive::text_iarchive ia(ifs);
@@ -55,8 +55,8 @@ namespace garf {
     }
 
     // Alternate constructor which loads from a filename straight away
-    template<class SplitT, class SplFitterT>
-    RegressionForest<SplitT, SplFitterT>::RegressionForest(std::string filename) {
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    RegressionForest<FeatT, LabT, SplitT, SplFitterT>::RegressionForest(std::string filename) {
         load_forest(filename);
     }
 
@@ -70,9 +70,9 @@ namespace garf {
     }
 
     // save a RegressionNode
-    template<class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
     template<class Archive>
-    void RegressionNode<SplitT, SplFitterT>::save(Archive & ar, const unsigned int version) const {
+    void RegressionNode<FeatT, LabT, SplitT, SplFitterT>::save(Archive & ar, const unsigned int version) const {
         ar << node_id;
         ar << depth;
         ar << dist;
@@ -89,9 +89,9 @@ namespace garf {
     }
 
     // Load a RegressionNode
-    template<class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
     template<class Archive>
-    void RegressionNode<SplitT, SplFitterT>::load(Archive & ar, const unsigned int version) {
+    void RegressionNode<FeatT, LabT, SplitT, SplFitterT>::load(Archive & ar, const unsigned int version) {
         // Need to use const cast to fill in a bunch of sutff here - this
         // is necessary unfortunately, recommended by boost.serialize manual
         ar >> const_cast<node_idx_t &>(node_id);
@@ -109,9 +109,9 @@ namespace garf {
 
             // Fix the parent pointers of the loaded children. This is the recommended
             // way of setting a const variable according to the Boost.serialzie
-            RegressionNode<SplitT, SplFitterT> ** left_child_parent = const_cast<RegressionNode<SplitT, SplFitterT> **>(&(left->parent));
+            RegressionNode<FeatT, LabT, SplitT, SplFitterT> ** left_child_parent = const_cast<RegressionNode<FeatT, LabT, SplitT, SplFitterT> **>(&(left->parent));
             *left_child_parent = this;
-            RegressionNode<SplitT, SplFitterT> ** right_child_parent = const_cast<RegressionNode<SplitT, SplFitterT> **>(&(right->parent));
+            RegressionNode<FeatT, LabT, SplitT, SplFitterT> ** right_child_parent = const_cast<RegressionNode<FeatT, LabT, SplitT, SplFitterT> **>(&(right->parent));
             *right_child_parent = this;
         }
         else {
@@ -121,17 +121,17 @@ namespace garf {
     }
 
     // Save and load a RegressionTree
-    template<class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
     template<class Archive>
-    void RegressionTree<SplitT, SplFitterT>::serialize(Archive & ar, const unsigned int version) {
+    void RegressionTree<FeatT, LabT, SplitT, SplFitterT>::serialize(Archive & ar, const unsigned int version) {
         ar & tree_id;
         ar & root;
     }
 
     // Save a RegressionForest
-    template<class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
     template<class Archive>
-    void RegressionForest<SplitT, SplFitterT>::save(Archive & ar, const unsigned int version) const {
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::save(Archive & ar, const unsigned int version) const {
         ar << trained;
 
         ar << forest_options;
@@ -146,9 +146,9 @@ namespace garf {
     }
 
     // Load a RegressionForest. Only complication is we need to allocate new memory in the trees array
-    template<class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
     template<class Archive>
-    void RegressionForest<SplitT, SplFitterT>::load(Archive & ar, const unsigned int version) {
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::load(Archive & ar, const unsigned int version) {
         ar >> trained;
 
         ar >> forest_options;
@@ -157,7 +157,7 @@ namespace garf {
         ar >> predict_options;
 
         ar >> forest_stats;
-        trees.reset(new RegressionTree<SplitT, SplFitterT>[forest_stats.num_trees]);
+        trees.reset(new RegressionTree<FeatT, LabT, SplitT, SplFitterT>[forest_stats.num_trees]);
         for (tree_idx_t t = 0; t < forest_stats.num_trees; t++) {
             ar >> trees[t];
         }

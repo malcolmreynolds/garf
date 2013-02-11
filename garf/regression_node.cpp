@@ -2,8 +2,8 @@
 
 namespace garf {
 
-    template<class SplitT, class SplFitterT>
-    void RegressionNode<SplitT, SplFitterT>::train(const RegressionTree<SplitT, SplFitterT> & tree,
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    void RegressionNode<FeatT, LabT, SplitT, SplFitterT>::train(const RegressionTree<FeatT, LabT, SplitT, SplFitterT> & tree,
                                                    const feature_matrix & features,
                                                    const label_matrix & labels,
                                                    const indices_vector & data_indices,
@@ -57,17 +57,17 @@ namespace garf {
         // If we are here then assume we found decent splits, indices of which
         // are stored in left_child_indices and right_child_indices. First create child nodes, then
         // do the training. FIXME: we could increase efficiency (slightly!) but
-        left.reset(new RegressionNode<SplitT, SplFitterT>(left_child_index(), this,
+        left.reset(new RegressionNode<FeatT, LabT, SplitT, SplFitterT>(left_child_index(), this,
                                                           labels.cols(), depth + 1));
-        right.reset(new RegressionNode<SplitT, SplFitterT>(right_child_index(), this,
+        right.reset(new RegressionNode<FeatT, LabT, SplitT, SplFitterT>(right_child_index(), this,
                                                            labels.cols(), depth + 1));
         left->train(tree, features, labels, left_child_indices, tree_opts, fitter);
         right->train(tree, features, labels, right_child_indices, tree_opts, fitter);
     }
 
     // Determine whether the stop growing the tree at this node.
-    template<class SplitT, class SplFitterT>
-    bool RegressionNode<SplitT, SplFitterT>::stopping_conditions_reached(const TreeOptions & tree_opts) const {
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    bool RegressionNode<FeatT, LabT, SplitT, SplFitterT>::stopping_conditions_reached(const TreeOptions & tree_opts) const {
         if (depth == tree_opts.max_depth) {
             return true; // Stop growing because we have reached max depth
         }

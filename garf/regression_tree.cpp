@@ -2,8 +2,8 @@
 
 namespace garf {
 
-    template<class SplitT, class SplFitterT>
-    void RegressionTree<SplitT, SplFitterT>::train(const feature_matrix & features,
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    void RegressionTree<FeatT, LabT, SplitT, SplFitterT>::train(const feature_matrix & features,
                                                    const label_matrix & labels,
                                                    const indices_vector & data_indices,
                                                    const TreeOptions & tree_opts,
@@ -15,7 +15,7 @@ namespace garf {
         // plus label dimensionality (need this in the constructor so
         // we can build our multi dimensional gaussians) and depth.
         // First parameters are zero and NULL since it's the root of the tree.
-        root.reset(new RegressionNode<SplitT, SplFitterT>(0, NULL, labels.cols(), 0));
+        root.reset(new RegressionNode<FeatT, LabT, SplitT, SplFitterT>(0, NULL, labels.cols(), 0));
 
         // fitter contains whatever temporary variables are needed to fit the object
         // of type SplitT that we are using. This is primarily so that all temporary
@@ -28,15 +28,15 @@ namespace garf {
                     tree_opts, &fitter);
     }
 
-    template<class SplitT, class SplFitterT>
-    const RegressionNode<SplitT, SplFitterT> & RegressionTree<SplitT, SplFitterT>::evaluate(const feature_vector & fvec,
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & RegressionTree<FeatT, LabT, SplitT, SplFitterT>::evaluate(const feature_vector & fvec,
                                                                                             const PredictOptions & predict_opts) const {
         depth_idx_t current_depth = 0;
 
         std::cout << "[t" << tree_id << "].predict([" << fvec.transpose()
             << "]), max depth is " << predict_opts.maximum_depth << std::endl;
 
-        RegressionNode<SplitT, SplFitterT> * current_node = root.get();
+        RegressionNode<FeatT, LabT, SplitT, SplFitterT> * current_node = root.get();
 
         split_dir_t dir;
         while (current_depth < predict_opts.maximum_depth &&

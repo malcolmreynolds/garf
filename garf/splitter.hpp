@@ -23,11 +23,12 @@ namespace garf {
     };
 
     // Splitter which does looks at a single feature dimension, tests against a single threshold
+    template<typename FeatT>
     class AxisAlignedSplt : public Splitter {
     public:
         feat_idx_t feat_idx;
-        double thresh;
-        inline split_dir_t evaluate(const feature_vector & fvec) const {
+        FeatT thresh;
+        inline split_dir_t evaluate(const feature_vec<FeatT> & fvec) const {
             if (fvec(feat_idx) <= thresh) {
                 return LEFT;
             }
@@ -49,14 +50,15 @@ namespace garf {
     };
 
     // splitter which looks at two dimensions scaled by two weights, compares to a single threshold
+    template<typename FeatT>
     class TwoDimSplt : public Splitter {
     public:
         feat_idx_t feat_1;
         feat_idx_t feat_2;
         double weight_feat_1;
         double weight_feat_2;
-        double thresh;
-        inline split_dir_t evaluate(const feature_vector & fvec) const {
+        FeatT thresh;
+        inline split_dir_t evaluate(const feature_vec<FeatT> & fvec) const {
             double test_val = (fvec(feat_1) * weight_feat_1) + 
                               (fvec(feat_2) * weight_feat_2);
             if (test_val <= thresh) {

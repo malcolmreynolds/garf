@@ -35,19 +35,19 @@ namespace garf {
 #endif
     };
 
-    template<class SplitT, class SplFitterT> class RegressionTree;
-    template<class SplitT, class SplFitterT> class RegressionNode;
-    template<class SplitT, class SplFitterT> class RegressionForest;
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT> class RegressionTree;
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT> class RegressionNode;
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT> class RegressionForest;
 
-    template<class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
     class RegressionNode {
     public:
         // parent node and children (left and right) nodes. Use a shared_ptr
         // so that when this node is destructed it also destructs the children
         // automatically
-        const RegressionNode<SplitT, SplFitterT> * const parent;
-        boost::shared_ptr<RegressionNode<SplitT, SplFitterT> > left;
-        boost::shared_ptr<RegressionNode<SplitT, SplFitterT> > right;
+        const RegressionNode<FeatT, LabT, SplitT, SplFitterT> * const parent;
+        boost::shared_ptr<RegressionNode<FeatT, LabT, SplitT, SplFitterT> > left;
+        boost::shared_ptr<RegressionNode<FeatT, LabT, SplitT, SplFitterT> > right;
 
         // Keep track of our identity and place in tree
         const node_idx_t node_id;
@@ -72,7 +72,7 @@ namespace garf {
         // When constructing, the only thing we should need to store is the parent (this
         // is allowed to be null, when we have the root node
         RegressionNode(node_idx_t _node_id,
-                       const RegressionNode<SplitT, SplFitterT> * const _parent,
+                       const RegressionNode<FeatT, LabT, SplitT, SplFitterT> * const _parent,
                        label_idx_t _num_label_dims, depth_idx_t _depth)
             : parent(_parent), node_id(_node_id), depth(_depth), dist(_num_label_dims), is_leaf(true) {};
         inline ~RegressionNode() {};
@@ -81,7 +81,7 @@ namespace garf {
 
         // First 5 arguments all compulsory. Last one allows us to optionally
         // provide an initial distribution, which otherwise we will need to calculate
-        void train(const RegressionTree<SplitT, SplFitterT> & tree,
+        void train(const RegressionTree<FeatT, LabT, SplitT, SplFitterT> & tree,
                    const feature_matrix & features,
                    const label_matrix & labels,
                    const indices_vector & data_indices,
@@ -121,9 +121,9 @@ namespace garf {
     // BOOST_SERIALIZATION_SHARED_PTR(RegressionNode)
 
 
-    template<class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
     class RegressionTree {
-        boost::shared_ptr<RegressionNode<SplitT, SplFitterT> > root;
+        boost::shared_ptr<RegressionNode<FeatT, LabT, SplitT, SplFitterT> > root;
     public:
         tree_idx_t tree_id;
         void train(const feature_matrix & features,
@@ -133,7 +133,7 @@ namespace garf {
                    const SplitOptions & split_opts);
 
         // Given some data vector, return a const reference to the node it would stop at
-        const RegressionNode<SplitT, SplFitterT> & evaluate(const feature_vector & fvec,
+        const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & evaluate(const feature_vector & fvec,
                                                             const PredictOptions & predict_options) const;
 
         template<class S, class ST>
@@ -154,20 +154,20 @@ namespace garf {
     // doubles. What we do want to template on is
     // the type of feature splitter we have, but let's get the
     // main interface down for now 
-    template<class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
     class RegressionForest {
         bool trained;
 
         ForestStats forest_stats;
 
-        boost::shared_array<RegressionTree<SplitT, SplFitterT> > trees;
+        boost::shared_array<RegressionTree<FeatT, LabT, SplitT, SplFitterT> > trees;
 
         // Checking the size of inputs given during prediction
         void check_label_output_matrix(label_matrix * const labels_out, feat_idx_t num_datapoints_to_predict) const;
         bool check_variance_output_matrix(label_matrix * const variances_out, feat_idx_t num_datapoints_to_predict) const;
         bool check_leaf_index_output_matrix(tree_idx_matrix * const leaf_indices_out, feat_idx_t num_datapoints_to_predict) const;
         void predict_single_vector(const feature_vector & feature_vec,
-                                   boost::scoped_array<RegressionNode<SplitT, SplFitterT> const *> * leaf_nodes_reached) const;
+                                   boost::scoped_array<RegressionNode<FeatT, LabT, SplitT, SplFitterT> const *> * leaf_nodes_reached) const;
 
 
     public:
