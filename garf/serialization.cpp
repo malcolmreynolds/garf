@@ -1,6 +1,7 @@
 #ifndef GARF_EIGEN_SERIALIZATION_HPP
 #define GARF_EIGEN_SERIALIZATION_HPP
 
+#include <fstream>
 #include <Eigen/Core>
 #include "types.hpp"
 
@@ -26,6 +27,35 @@ namespace boost {
 
 
 namespace garf {
+
+    // Utility function which means we don't need to open an fstream, etc
+    template<class SplitT, class SplFitterT>
+    void RegressionForest<SplitT, SplFitterT>::save_forest(std::string filename) {
+        ofstream ofs(filename);
+        boost::archive::text_Archive oa(ofs);
+        ofs << *this;
+        std::cout << "forest saved to " << filename << std::endl;
+    }
+
+    // Load a forest from disk into the forest this is called on. Note, this will
+    // delete the current forest, so it makes sense to call this on a forest which
+    // isn't currently trained - but there is nothing to enforce this. 
+    template<class SplitT, class SplFitterT>
+    void RegressionForest<SplitT, SplFitterT>::load_forest(std::string filename) {
+        clear();
+        ifstream ifs(filename);
+        boost::archive::text_archive ia(ifs);
+        ifs >> *this;
+        std::cout << "forest loaded from " << filename << std::endl;
+    }
+
+    // Alternate constructor which loads from a filename straight away
+    template<class SplitT, class SplFitterT>
+    RegressionForest<SplitT, SplFitterT>::RegressionForest(std::string filename) {
+        load_forest(filename);
+    }
+
+    // load & save foreststats
     template<class Archive>
     void ForestStats::serialize(Archive & ar, const unsigned int version) {
         ar & data_dimensions;
@@ -34,6 +64,7 @@ namespace garf {
         ar & num_trees;
     }
 
+    // save a RegressionNode
     template<class SplitT, class SplFitterT>
     template<class Archive>
     void RegressionNode<SplitT, SplFitterT>::save(Archive & ar, const unsigned int version) const {
@@ -51,6 +82,7 @@ namespace garf {
         }
     }
 
+    // Load a RegressionNode
     template<class SplitT, class SplFitterT>
     template<class Archive>
     void RegressionNode<SplitT, SplFitterT>::load(Archive & ar, const unsigned int version) {
@@ -78,7 +110,7 @@ namespace garf {
         }
     }
 
-    // Save and load a 
+    // Save and load a RegressionTree
     template<class SplitT, class SplFitterT>
     template<class Archive>
     void RegressionTree<SplitT, SplFitterT>::serialize(Archive & ar, const unsigned int version) {

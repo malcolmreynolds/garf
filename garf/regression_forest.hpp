@@ -194,6 +194,9 @@ namespace garf {
         friend std::ostream& operator<< (std::ostream& stream, const RegressionForest<S, ST> & frst);
 
 #ifdef GARF_SERIALIZE_ENABLE
+        void save_forest(std::string filename) const;
+        void load_forest(std::string filename);
+        RegressionForest(std::string filename);
     private:
         friend class boost::serialization::access;
 
