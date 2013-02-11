@@ -368,7 +368,8 @@ namespace garf {
                 << "cov:" << std::endl  << cov << std::endl;
         }
 
-        friend std::ostream& operator<< (std::ostream& stream, const MultiDimGaussianX& mdg) {
+        template<typename T1>
+        friend std::ostream& operator<< (std::ostream& stream, const MultiDimGaussianX<T1>& mdg) {
             stream << "[mean[" << mdg.mean.transpose() << "]:cov[";
             for (eigen_idx_t r = 0; r < mdg.dimensions; r++) {
                 stream << mdg.cov.row(r);
@@ -387,10 +388,7 @@ namespace garf {
         template<class Archive>
         void serialize(Archive & ar, const unsigned int version);
 #endif
-
-
     };
-
 }
 
 #endif

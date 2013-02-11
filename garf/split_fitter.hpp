@@ -9,17 +9,18 @@
 
 namespace garf {
 
+    template<typename FeatT, typename LabelT>
     class SplFitter {
     public:
         const SplitOptions split_opts;
         const uint64_t label_dims;
 
-        MultiDimGaussianX left_child_dist;
-        MultiDimGaussianX right_child_dist;
+        MultiDimGaussianX<LabelT> left_child_dist;
+        MultiDimGaussianX<LabelT> right_child_dist;
 
         std::mt19937_64 rng; // Mersenne twister
 
-        SplFitter(const SplitOptions & _split_opts, uint64_t _label_dims, uint64_t seed_value=42)
+        SplFitter(const SplitOptions & _split_opts, label_idx_t _label_dims, uint64_t seed_value=42)
                 : split_opts(_split_opts),
                   label_dims(_label_dims), 
                   left_child_dist(_label_dims),
@@ -29,16 +30,18 @@ namespace garf {
         };
     };
 
-    class AxisAlignedSplFitter : public SplFitter {
+    template<typename FeatT, typename LabelT>
+    class AxisAlignedSplFitter : public SplFitter<FeatT, LabelT> {
     public:
-        AxisAlignedSplFitter(const SplitOptions & _split_opts, uint64_t _label_dims, uint64_t seed_value=0) : SplFitter(_split_opts, _label_dims, seed_value) {};
-        virtual bool choose_split_parameters(const feature_matrix & features,
-                                             const feature_matrix & labels,
-                                             const indices_vector & parent_data_indices,
-                                             const MultiDimGaussianX & parent_dist,
-                                             AxisAlignedSplt * split,
-                                             indices_vector * left_child_indices_out,
-                                             indices_vector * right_child_indices_out);
+        AxisAlignedSplFitter(const SplitOptions & _split_opts, label_idx_t _label_dims, uint64_t seed_value=0)
+            : SplFitter<FeatT, LabelT>(_split_opts, _label_dims, seed_value) {};
+        virtual bool choose_split_parameters(const feature_mtx<FeatT> & features,
+                                             const label_mtx<LabelT> & labels,
+                                             const data_indices_vec & parent_data_indices,
+                                             const MultiDimGaussianX<LabelT> & parent_dist,
+                                             AxisAlignedSplt<FeatT> * split,
+                                             data_indices_vec * left_child_indices_out,
+                                             data_indices_vec * right_child_indices_out);
     };
 }
 

@@ -6,9 +6,10 @@
 
 namespace garf {
 
-    double information_gain(const MultiDimGaussianX & parent_dist,
-                            const MultiDimGaussianX & left_dist,
-                            const MultiDimGaussianX & right_dist,
+    template<typename T>
+    double information_gain(const MultiDimGaussianX<T> & parent_dist,
+                            const MultiDimGaussianX<T> & left_dist,
+                            const MultiDimGaussianX<T> & right_dist,
                             uint64_t num_in_parent, uint64_t num_in_left, uint64_t num_in_right) {
         double det_parent = parent_dist.cov.determinant();
         double det_left = left_dist.cov.determinant();
