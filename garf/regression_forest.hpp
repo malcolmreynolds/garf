@@ -116,11 +116,6 @@ namespace garf {
 #endif
     };
 
-
-    // template<A, B>
-    // BOOST_SERIALIZATION_SHARED_PTR(RegressionNode)
-
-
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     class RegressionTree {
         boost::shared_ptr<RegressionNode<FeatT, LabT, SplitT, SplFitterT> > root;
@@ -148,12 +143,6 @@ namespace garf {
 #endif
     };
 
-       
-    // We don't want to template on feature or label
-    // type any more. Features and labels are
-    // doubles. What we do want to template on is
-    // the type of feature splitter we have, but let's get the
-    // main interface down for now 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     class RegressionForest {
         bool trained;
@@ -166,6 +155,8 @@ namespace garf {
         void check_label_output_matrix(label_mtx<LabT> * const labels_out, datapoint_idx_t num_datapoints_to_predict) const;
         bool check_variance_output_matrix(label_mtx<LabT> * const variances_out, datapoint_idx_t num_datapoints_to_predict) const;
         bool check_leaf_index_output_matrix(tree_idx_mtx * const leaf_indices_out, datapoint_idx_t num_datapoints_to_predict) const;
+
+        // Actually do a single prediction - fill the provided output vector with pointers to the leaf nodes reached
         void predict_single_vector(const feature_vec<FeatT> & feature_vec,
                                    boost::scoped_array<RegressionNode<FeatT, LabT, SplitT, SplFitterT> const *> * leaf_nodes_reached) const;
 

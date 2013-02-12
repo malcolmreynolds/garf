@@ -23,14 +23,13 @@ namespace garf {
         // then gets automatically deleted because it's on the stack. Also means once training
         // is done only the necessary data is left in the forest (to reduce memory usage
         // & serialization size)
-        // SplFitterT<FeatT, LabT> fitter(split_opts, labels.cols(), tree_id); // seed RNG with the tree id
         root->train(*this, features, labels, data_indices,
                     tree_opts, fitter);
     }
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & RegressionTree<FeatT, LabT, SplitT, SplFitterT>::evaluate(const feature_vec<FeatT> & fvec,
-                                                                                            const PredictOptions & predict_opts) const {
+                                                                                                                      const PredictOptions & predict_opts) const {
         depth_idx_t current_depth = 0;
 
         std::cout << "[t" << tree_id << "].predict([" << fvec.transpose()
@@ -39,7 +38,7 @@ namespace garf {
         RegressionNode<FeatT, LabT, SplitT, SplFitterT> * current_node = root.get();
 
         split_dir_t dir;
-        while (current_depth < predict_opts.maximum_depth &&
+        while ((current_depth < predict_opts.maximum_depth) &&
                !current_node->is_leaf) {
             std::cout << "t[" << tree_id << ":" << current_node->node_id << "], evaluating..." << std::endl;
             dir = current_node->split.evaluate(fvec);
