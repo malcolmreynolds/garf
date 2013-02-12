@@ -49,10 +49,10 @@ namespace garf {
 
             // If we build the splfitter here we open the possibility of each thread building their own only
             // once, avoiding repeated memory allocation. yay!
-            SplFitterT<FeatT, LabT> fitter(split_options, labels.cols(), t);
+            SplFitterT<FeatT, LabT> fitter(split_options, forest_stats.num_training_datapoints,
+                                           forest_stats.data_dimensions, forest_stats.label_dimensions, t);
             trees[t].train(features, labels, data_indices, tree_options, &fitter);
         }
-
         // We are done, so set the forest as trained
         trained = true;
     }
