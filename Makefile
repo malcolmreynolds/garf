@@ -1,10 +1,10 @@
 CXX=clang++
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra -std=c++0x -stdlib=libc++
+CXXFLAGS += -g -Wall -Wextra -std=c++0x -stdlib=libc++ -ferror-limit=3
 
 
 # Eigen
-CXXFLAGS += -I/usr/local/include/eigen3 -Wno-unused-parameter
+CXXFLAGS += -I/usr/local/include/eigen3  -Wno-unused-parameter
 
 
 # Google Test stuff - taken from the gtest sample1 makefile

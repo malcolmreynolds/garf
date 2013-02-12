@@ -4,22 +4,24 @@ namespace garf {
         return true;
     }
 
-    void evaluate_single_split(const feature_matrix & split_feature_values,
-                               const indices_vector & data_indices,
-                               split_idx_t split_feature, feat_t thresh,
-                               split_dir_vector * candidate_split_directions,
-                               indices_vector * indices_going_left,
-                               indices_vector * indices_going_right,
-                               uint64_t * const num_going_left,
-                               uint64_t * const num_going_right) {
+    template<typename FeatT>
+    void evaluate_single_split(const feature_mtx<FeatT> & split_feature_values,
+                               const data_indices_vec & data_indices,
+                               split_idx_t split_feature, FeatT thresh,
+                               split_dir_vec * candidate_split_directions,
+                               data_indices_vec * indices_going_left,
+                               data_indices_vec * indices_going_right,
+                               datapoint_idx_t * const num_going_left,
+                               datapoint_idx_t * const num_going_right) {
+
         datapoint_idx_t num_samples_to_evaluate = split_feature_values.rows();
         if (candidate_split_directions->size() != num_samples_to_evaluate) {
             throw new std::logic_error("candidate_split_directions size doesn't match number of sampels to split on");
         }
 
         // Keep track of places to 
-        uint64_t left_idx = 0;
-        uint64_t right_idx = 0;
+        datapoint_idx_t left_idx = 0;
+        datapoint_idx_t right_idx = 0;
 
         for (datapoint_idx_t i = 0; i < num_samples_to_evaluate; i++) {
             if (split_feature_values(i, split_feature) <= thresh) {
@@ -34,17 +36,17 @@ namespace garf {
         }
         *num_going_left = left_idx;
         *num_going_right = right_idx;
-
     }
 
 
-    bool AxisAlignedSplFitter::choose_split_parameters(const feature_matrix & features,
-                                                       const feature_matrix & labels,
-                                                       const indices_vector & parent_data_indices,
-                                                       const MultiDimGaussianX & parent_dist,
-                                                       AxisAlignedSplt * split,
-                                                       indices_vector * left_child_indices_out,
-                                                       indices_vector * right_child_indices_out) {
+    template<typename FeatT, typename LabT>
+    bool AxisAlignedSplFitter<FeatT, LabT>::choose_split_parameters(const feature_mtx<FeatT> & features,
+                                                       const feature_mtx<LabT> & labels,
+                                                       const data_indices_vec & parent_data_indices,
+                                                       const MultiDimGaussianX<LabT> & parent_dist,
+                                                       AxisAlignedSplt<FeatT> * split,
+                                                       data_indices_vec * left_child_indices_out,
+                                                       data_indices_vec * right_child_indices_out) {
         // This does all the work of the splitting. We take in the dataset,
         // a list of what ended up in the parent data node (which we are currently
         // splitting), and the distribution it caused. We output into the split node,
@@ -52,20 +54,19 @@ namespace garf {
         datapoint_idx_t num_in_parent = parent_data_indices.size();
         feat_idx_t feature_dimensionality = features.cols();
 
-
-
+        const SplitOptions & split_opts = this->split_opts;
 
         // Pick which features to try from a uniform distribution
         std::uniform_int_distribution<feat_idx_t> feat_idx_dist(0, feature_dimensionality-1);
-        feat_idx_vector feature_indices_to_evaluate(split_opts.num_splits_to_try);
+        feat_idx_vec feature_indices_to_evaluate(split_opts.num_splits_to_try);
         for (feat_idx_t i = 0; i < split_opts.num_splits_to_try; i++) {
-            feature_indices_to_evaluate(i) = feat_idx_dist(rng);
+            feature_indices_to_evaluate(i) = feat_idx_dist(this->rng);
         }
         std::cout << "parent_data_indices = " << parent_data_indices.transpose()
             << " feat_indices = " << feature_indices_to_evaluate.transpose() << std::endl;
 
         // Evaluate datapoint at each of these feature indices
-        feature_matrix feature_values(num_in_parent, split_opts.num_splits_to_try);
+        feature_mtx<FeatT> feature_values(num_in_parent, split_opts.num_splits_to_try);
         for (datapoint_idx_t data_idx = 0; data_idx < num_in_parent; data_idx++) {
             for (feat_idx_t feat_idx = 0; feat_idx < split_opts.num_splits_to_try; feat_idx++) {
                 feature_values(data_idx, feat_idx) = features(parent_data_indices(data_idx), feature_indices_to_evaluate(feat_idx));
@@ -74,35 +75,35 @@ namespace garf {
         std::cout << "feature values = " << std::endl << feature_values << std::endl;
 
         // Work out the min and max range
-        feature_matrix min_feature_values = feature_values.colwise().minCoeff();
-        feature_matrix max_feature_values = feature_values.colwise().maxCoeff();
+        feature_vec<FeatT> min_feature_values = feature_values.colwise().minCoeff();
+        feature_vec<FeatT> max_feature_values = feature_values.colwise().maxCoeff();
         std::cout << "min features: " << min_feature_values << std::endl;
         std::cout << "max features: " << max_feature_values << std::endl;
 
         // Generate some feature splits which land inside these points
-        feature_matrix split_thresholds(split_opts.num_splits_to_try, split_opts.threshes_per_split);
+        feature_mtx<FeatT> split_thresholds(split_opts.num_splits_to_try, split_opts.threshes_per_split);
         for (feat_idx_t feat_idx = 0; feat_idx < split_opts.num_splits_to_try; feat_idx++) {
             // std::cout << feat_idx << ": for feature " << feature_indices_to_evaluate(feat_idx)
             //     << " generating threshes in [" << min_feature_values(feat_idx) << "," << max_feature_values(feat_idx) << "]" << std::endl;
 
-            std::uniform_real_distribution<feat_t> thresh_dist(min_feature_values(feat_idx), max_feature_values(feat_idx));
+            std::uniform_real_distribution<FeatT> thresh_dist(min_feature_values(feat_idx), max_feature_values(feat_idx));
 
             for (split_idx_t split_idx = 0; split_idx < split_opts.threshes_per_split; split_idx++) {
-                split_thresholds(feat_idx, split_idx) = thresh_dist(rng);
+                split_thresholds(feat_idx, split_idx) = thresh_dist(this->rng);
             }
         }
 
         std::cout << "thresholds = " << std::endl << split_thresholds << std::endl;
 
         // Store best information gain so far in here
-        double best_inf_gain = -std::numeric_limits<double>::infinity();
-        split_dir_vector candidate_split_directions(num_in_parent);
+        double best_inf_gain = -std::numeric_limits<LabT>::infinity();
+        split_dir_vec candidate_split_directions(num_in_parent);
         bool good_split_found = false;
 
-        indices_vector samples_going_left(num_in_parent - 1);
-        indices_vector samples_going_right(num_in_parent - 1);
+        data_indices_vec samples_going_left(num_in_parent - 1);
+        data_indices_vec samples_going_right(num_in_parent - 1);
 
-        uint64_t num_going_left, num_going_right;
+        datapoint_idx_t num_going_left, num_going_right;
 
         for (split_idx_t split_idx = 0; split_idx < split_opts.num_splits_to_try; split_idx++) {
             for (split_idx_t thresh_idx = 0; thresh_idx < split_opts.threshes_per_split; thresh_idx++) {
@@ -122,13 +123,13 @@ namespace garf {
                     << num_going_right << " going right: " << samples_going_right.head(num_going_right).transpose() << std::endl;
 
                 // Now work out the information gain. First fit gaussians
-                left_child_dist.fit_params(labels, samples_going_left, num_going_left);
-                right_child_dist.fit_params(labels, samples_going_right, num_going_right);
+                this->left_child_dist.fit_params(labels, samples_going_left, num_going_left);
+                this->right_child_dist.fit_params(labels, samples_going_right, num_going_right);
                 std::cout << "P" << num_in_parent << parent_dist
-                    << " L" << num_going_left << left_child_dist
-                    << " R" << num_going_right << right_child_dist << " ";
+                    << " L" << num_going_left << this->left_child_dist
+                    << " R" << num_going_right << this->right_child_dist << " ";
 
-                double inf_gain = information_gain(parent_dist, left_child_dist, right_child_dist,
+                double inf_gain = information_gain(parent_dist, this->left_child_dist, this->right_child_dist,
                                                    num_in_parent, num_going_left, num_going_right);
                 std::cout << "igain: " << inf_gain << std::endl << std::endl;
 

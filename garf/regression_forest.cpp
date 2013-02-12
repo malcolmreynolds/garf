@@ -3,8 +3,8 @@
 
 namespace garf {
 
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::train(const feature_matrix & features, const label_matrix & labels) {
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::train(const feature_mtx<FeatT> & features, const label_mtx<LabT> & labels) {
         if (trained) {
             throw std::invalid_argument("forest is already trained");
         }
@@ -36,7 +36,7 @@ namespace garf {
         for (tree_idx_t t = 0; t < forest_options.max_num_trees; t++) {
             trees[t].tree_id = t;
 
-            indices_vector data_indices(num_datapoints);
+            data_indices_vec data_indices(num_datapoints);
             if (forest_options.bagging) {
                 // Sample indices from the full dataset WITH REPLACEMENT!!!
                 for (datapoint_idx_t d = 0; d < num_datapoints; d++) {
@@ -54,7 +54,7 @@ namespace garf {
     }
 
     // Clears everything in the forest, ie forgets all the training
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::clear() {
         std::cout << "clearing forest of " << forest_stats.num_trees << " trees." << std::endl;
         trees.reset();
@@ -64,8 +64,8 @@ namespace garf {
 
     // Given a single feature vector, send it down each tree in turn and fill the given scoped 
     // array with pointers to which node it lands at in each
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::predict_single_vector(const feature_vector & feature_vec,
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::predict_single_vector(const feature_vec<FeatT> & feature_vec,
                                                                      boost::scoped_array<RegressionNode<FeatT, LabT, SplitT, SplFitterT> const *> * leaf_nodes_reached) const {
         for (tree_idx_t t = 0; t < forest_stats.num_trees; t++) {
             (*leaf_nodes_reached)[t] = &trees[t].evaluate(feature_vec, predict_options);
@@ -73,8 +73,8 @@ namespace garf {
     }
 
     // Checks dimensions of labels_out matrix. Throws an error if it is not present or wrong shape.
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_label_output_matrix(label_matrix * const labels_out,
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_label_output_matrix(label_mtx<LabT> * const labels_out,
                                                                          feat_idx_t num_datapoints_to_predict) const {
         if (labels_out == NULL) {
             throw std::invalid_argument("predict(): label ouput vector must be supplied!");
@@ -88,8 +88,8 @@ namespace garf {
 
     // Returns false if the variances_out matrix is not present (ie we shouldn't bother computing variance),
     // true if it is present and the right shape. Throws a descriptive exception if it is present but the wrong shape
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
-    bool RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_variance_output_matrix(label_matrix * const variances_out,
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    bool RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_variance_output_matrix(label_mtx<LabT> * const variances_out,
                                                                             feat_idx_t num_datapoints_to_predict) const {
         if (variances_out == NULL) {
             return false;  // caller of predict() hasn't supplied a vector output, so don't compute variances
@@ -102,8 +102,8 @@ namespace garf {
     }
 
     // As above, returns true if the leaf index output matrix is the right shape
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
-    bool RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_leaf_index_output_matrix(tree_idx_matrix * const leaf_indices_out,
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    bool RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_leaf_index_output_matrix(tree_idx_mtx * const leaf_indices_out,
                                                                               feat_idx_t num_datapoints_to_predict) const {
         if (leaf_indices_out == NULL) {
             return false; // we don't need to compute / return leaf indices
@@ -115,11 +115,11 @@ namespace garf {
         return true; // all conditions satisfied, okay to return leaf indices
     }
 
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::predict(const feature_matrix & features,
-                                                       label_matrix * const labels_out,
-                                                       label_matrix * const variances_out,
-                                                       tree_idx_matrix * const leaf_indices_out) const {
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::predict(const feature_mtx<FeatT> & features,
+                                                       label_mtx<LabT> * const labels_out,
+                                                       label_mtx<LabT> * const variances_out,
+                                                       tree_idx_mtx * const leaf_indices_out) const {
         if (!trained) {
             throw std::invalid_argument("cannot predict, forest not trained yet");
         }
@@ -127,7 +127,7 @@ namespace garf {
         // Check features
         feat_idx_t num_datapoints_to_predict = features.rows();
         if (features.cols() != forest_stats.data_dimensions) {
-            throw std::invalid_argument("predict(): feature_matrix.cols() != trained data dimensions");
+            throw std::invalid_argument("predict(): feature_mtx<FeatT>.cols() != trained data dimensions");
         }
 
         // Don't need to get a boolean variable back from the label_output test function - if it's invalid
@@ -176,14 +176,14 @@ namespace garf {
             } else {
                 // Compute mean and variance at the same time. We are using iterative method for calculating each
                 // online (this is most numerically stable) - see http://www-uxsup.csx.cam.ac.uk/~fanf2/hermes/doc/antiforgery/stats.pdf
-                label_vector mu_n(forest_stats.label_dimensions);
-                label_vector mu_n_minus_1(forest_stats.label_dimensions);  // mean at previous timestep
+                label_vec<LabT> mu_n(forest_stats.label_dimensions);
+                label_vec<LabT> mu_n_minus_1(forest_stats.label_dimensions);  // mean at previous timestep
                 mu_n.setZero();
                 mu_n_minus_1.setZero();
 
                 for (tree_idx_t t = 0; t < forest_stats.num_trees; t++) {
                     // Get const reference to the mean at the leaf node, just so we don't have to do the pointer indirections again
-                    const feature_vector & leaf_node_mean = leaf_nodes_reached[t]->dist.mean;
+                    const feature_vec<FeatT> & leaf_node_mean = leaf_nodes_reached[t]->dist.mean;
 
                     // Update the mean
                     mu_n = mu_n_minus_1 + (1.0 / static_cast<double>(t+1)) * (leaf_node_mean - mu_n_minus_1);
@@ -209,7 +209,7 @@ namespace garf {
         }
     }
 
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     inline std::ostream& operator<< (std::ostream& stream, const RegressionForest<FeatT, LabT, SplitT, SplFitterT> & frst) {
         stream << "[RegFrst:";
         if (!frst.trained) {

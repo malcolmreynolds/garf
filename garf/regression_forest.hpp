@@ -35,11 +35,11 @@ namespace garf {
 #endif
     };
 
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT> class RegressionTree;
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT> class RegressionNode;
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT> class RegressionForest;
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT> class RegressionTree;
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>class RegressionNode;
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>class RegressionForest;
 
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     class RegressionNode {
     public:
         // parent node and children (left and right) nodes. Use a shared_ptr
@@ -53,16 +53,16 @@ namespace garf {
         const node_idx_t node_id;
         const depth_idx_t depth;
 
-        // Label distribution
-        MultiDimGaussianX dist;
+        // distribution over label values
+        MultiDimGaussianX<LabT> dist;
 
         // Which training data points passed through here
-        indices_vector training_data_indices;
+        data_indices_vec training_data_indices;
 
         // The split object. This just holds the raw data necessary for
         // splitting - all intermediate data used while training should
         // be gone at test time leaving just the essentials
-        SplitT split;
+        SplitT<FeatT> split;
 
         // This kind of sucks but to serialize we need a flag as to whether we 
         // save & load child nodes - easy when saving, but when loading how
@@ -82,12 +82,12 @@ namespace garf {
         // First 5 arguments all compulsory. Last one allows us to optionally
         // provide an initial distribution, which otherwise we will need to calculate
         void train(const RegressionTree<FeatT, LabT, SplitT, SplFitterT> & tree,
-                   const feature_matrix & features,
-                   const label_matrix & labels,
-                   const indices_vector & data_indices,
+                   const feature_mtx<FeatT> & features,
+                   const label_mtx<LabT> & labels,
+                   const data_indices_vec & data_indices,
                    const TreeOptions & tree_opts,
-                   SplFitterT * fitter,
-                   const MultiDimGaussianX * const _dist = NULL);
+                   SplFitterT<FeatT, LabT> * fitter,
+                   const MultiDimGaussianX<LabT> * const _dist = NULL);
 
         // decides whether the datapoints that reach this node justify further splitting
         bool stopping_conditions_reached(const TreeOptions & tree_opts) const;
@@ -97,8 +97,8 @@ namespace garf {
         inline node_idx_t left_child_index() const { return (2 * node_id) + 1; }
         inline node_idx_t right_child_index() const { return (2 * node_id) + 2; }
 
-        template<class S, class ST>
-        friend std::ostream& operator<< (std::ostream& stream, const RegressionNode<S, ST> & node);
+        template<typename F, typename L, template<typename> class S, template<typename,typename> class ST>
+        friend std::ostream& operator<< (std::ostream& stream, const RegressionNode<F, L, S, ST> & node);
 
 #ifdef GARF_SERIALIZE_ENABLE
         // Zero arg constructor just for serialization of things inside a shared_ptr
@@ -121,23 +121,23 @@ namespace garf {
     // BOOST_SERIALIZATION_SHARED_PTR(RegressionNode)
 
 
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     class RegressionTree {
         boost::shared_ptr<RegressionNode<FeatT, LabT, SplitT, SplFitterT> > root;
     public:
         tree_idx_t tree_id;
-        void train(const feature_matrix & features,
-                   const label_matrix & labels,
-                   const indices_vector & data_indices,
+        void train(const feature_mtx<FeatT> & features,
+                   const label_mtx<LabT> & labels,
+                   const data_indices_vec & data_indices,
                    const TreeOptions & tree_opts,
                    const SplitOptions & split_opts);
 
         // Given some data vector, return a const reference to the node it would stop at
-        const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & evaluate(const feature_vector & fvec,
-                                                            const PredictOptions & predict_options) const;
+        const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & evaluate(const feature_vec<FeatT> & fvec,
+                                                                         const PredictOptions & predict_options) const;
 
-        template<class S, class ST>
-        friend std::ostream& operator<< (std::ostream& stream, const RegressionTree<S, ST> & tree);
+        template<typename F, typename L, template<typename> class S, template<typename,typename> class ST>
+        friend std::ostream& operator<< (std::ostream& stream, const RegressionTree<F, L, S, ST> & tree);
 
 #ifdef GARF_SERIALIZE_ENABLE
     private:
@@ -154,7 +154,7 @@ namespace garf {
     // doubles. What we do want to template on is
     // the type of feature splitter we have, but let's get the
     // main interface down for now 
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     class RegressionForest {
         bool trained;
 
@@ -163,10 +163,10 @@ namespace garf {
         boost::shared_array<RegressionTree<FeatT, LabT, SplitT, SplFitterT> > trees;
 
         // Checking the size of inputs given during prediction
-        void check_label_output_matrix(label_matrix * const labels_out, feat_idx_t num_datapoints_to_predict) const;
-        bool check_variance_output_matrix(label_matrix * const variances_out, feat_idx_t num_datapoints_to_predict) const;
-        bool check_leaf_index_output_matrix(tree_idx_matrix * const leaf_indices_out, feat_idx_t num_datapoints_to_predict) const;
-        void predict_single_vector(const feature_vector & feature_vec,
+        void check_label_output_matrix(label_mtx<LabT> * const labels_out, datapoint_idx_t num_datapoints_to_predict) const;
+        bool check_variance_output_matrix(label_mtx<LabT> * const variances_out, datapoint_idx_t num_datapoints_to_predict) const;
+        bool check_leaf_index_output_matrix(tree_idx_mtx * const leaf_indices_out, datapoint_idx_t num_datapoints_to_predict) const;
+        void predict_single_vector(const feature_vec<FeatT> & feature_vec,
                                    boost::scoped_array<RegressionNode<FeatT, LabT, SplitT, SplFitterT> const *> * leaf_nodes_reached) const;
 
 
@@ -182,14 +182,14 @@ namespace garf {
 
         // Below here is the main public API for interacting with forests
         void clear();
-        void train(const feature_matrix & features, const label_matrix & labels);
-        void predict(const feature_matrix & features, label_matrix * const labels_out,
-                     label_matrix * const variances_out = NULL, tree_idx_matrix * const leaf_indices_output = NULL) const;
+        void train(const feature_mtx<FeatT> & features, const label_mtx<LabT> & labels);
+        void predict(const feature_mtx<FeatT> & features, label_mtx<LabT> * const labels_out,
+                     label_mtx<LabT> * const variances_out = NULL, tree_idx_mtx * const leaf_indices_output = NULL) const;
         inline bool is_trained() const { return trained; }
 
         // Need different template parameters here to avoid shadowing the ones for the whole class
-        template<class S, class ST>
-        friend std::ostream& operator<< (std::ostream& stream, const RegressionForest<S, ST> & frst);
+        template<typename F, typename L, template<typename> class S, template<typename,typename> class ST>
+        friend std::ostream& operator<< (std::ostream& stream, const RegressionForest<F, L, S, ST> & frst);
 
         // Get a const reference to the forest stats, so they can't be changed
         inline const ForestStats & stats() const { return forest_stats; }

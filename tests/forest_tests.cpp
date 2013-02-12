@@ -20,7 +20,7 @@ using Eigen::MatrixXd;
 #include "garf/regression_forest.hpp"
 
 
-typedef garf::RegressionForest<garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest_ax_align;
+typedef garf::RegressionForest<double, double, garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest_ax_align;
 
 const double tol = 0.00001;
 
@@ -52,20 +52,20 @@ void expect_matrices_equal(const Matrix<T, num_rows, num_cols> & m1,
 }
 
 
-template<class ForestT>
+template<typename FT, typename LT, class ForestT>
 void assert_forest_predictions_match(const ForestT & f1,
                                      const ForestT & f2,
-                                     const garf::feature_matrix & features) {
+                                     const garf::feature_mtx<FT> & features) {
     garf::eigen_idx_t num_datapoints = features.rows();
 
     // Create output arrays to store everything in
     const garf::ForestStats & stats = f1.stats();
-    garf::label_matrix l1(num_datapoints, stats.label_dimensions);
-    garf::label_matrix l2(num_datapoints, stats.label_dimensions);
-    garf::variance_matrix v1(num_datapoints, stats.label_dimensions);
-    garf::variance_matrix v2(num_datapoints, stats.label_dimensions);
-    garf::tree_idx_matrix t1(num_datapoints, stats.num_trees);
-    garf::tree_idx_matrix t2(num_datapoints, stats.num_trees);
+    garf::label_mtx<LT> l1(num_datapoints, stats.label_dimensions);
+    garf::label_mtx<LT> l2(num_datapoints, stats.label_dimensions);
+    garf::variance_mtx<LT> v1(num_datapoints, stats.label_dimensions);
+    garf::variance_mtx<LT> v2(num_datapoints, stats.label_dimensions);
+    garf::tree_idx_mtx t1(num_datapoints, stats.num_trees);
+    garf::tree_idx_mtx t2(num_datapoints, stats.num_trees);
 
     // return;
 
@@ -175,13 +175,16 @@ TEST(ForestTest, RegTest2) {
 }
 
 TEST(ForestTest, Serialize) {
+    typedef double feat_t;
+    typedef double label_t;
+
     uint64_t data_elements = 1000;
     uint64_t data_dims = 2;
     uint64_t label_dims = 1;
-    MatrixXd data(data_elements, data_dims);
+    garf::feature_mtx<feat_t> data(data_elements, data_dims);
     data.setRandom();
 
-    MatrixXd labels(data_elements, label_dims);
+    garf::label_mtx<label_t> labels(data_elements, label_dims);
     make_1d_labels_from_2d_data_squared_diff(data, labels);
     labels.setRandom();
 
@@ -196,7 +199,7 @@ TEST(ForestTest, Serialize) {
     forest1.save_forest("test_serialize.forest");
     forest2.load_forest("test_serialize.forest");
 
-    assert_forest_predictions_match<forest_ax_align>(forest1, forest2, data);
+    assert_forest_predictions_match<feat_t, label_t, forest_ax_align>(forest1, forest2, data);
 }
 
 GTEST_API_ int main(int argc, char **argv) {

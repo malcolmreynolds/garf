@@ -34,7 +34,7 @@ namespace boost {
 namespace garf {
 
     // Utility function which means we don't need to open an fstream, etc
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::save_forest(std::string filename) const {
         std::ofstream ofs(filename);
         boost::archive::text_oarchive oa(ofs);
@@ -45,7 +45,7 @@ namespace garf {
     // Load a forest from disk into the forest this is called on. Note, this will
     // delete the current forest, so it makes sense to call this on a forest which
     // isn't currently trained - but there is nothing to enforce this. 
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::load_forest(std::string filename) {
         clear();
         std::ifstream ifs(filename);
@@ -55,7 +55,7 @@ namespace garf {
     }
 
     // Alternate constructor which loads from a filename straight away
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     RegressionForest<FeatT, LabT, SplitT, SplFitterT>::RegressionForest(std::string filename) {
         load_forest(filename);
     }
@@ -70,7 +70,7 @@ namespace garf {
     }
 
     // save a RegressionNode
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     template<class Archive>
     void RegressionNode<FeatT, LabT, SplitT, SplFitterT>::save(Archive & ar, const unsigned int version) const {
         ar << node_id;
@@ -89,7 +89,7 @@ namespace garf {
     }
 
     // Load a RegressionNode
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     template<class Archive>
     void RegressionNode<FeatT, LabT, SplitT, SplFitterT>::load(Archive & ar, const unsigned int version) {
         // Need to use const cast to fill in a bunch of sutff here - this
@@ -121,7 +121,7 @@ namespace garf {
     }
 
     // Save and load a RegressionTree
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     template<class Archive>
     void RegressionTree<FeatT, LabT, SplitT, SplFitterT>::serialize(Archive & ar, const unsigned int version) {
         ar & tree_id;
@@ -129,7 +129,7 @@ namespace garf {
     }
 
     // Save a RegressionForest
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     template<class Archive>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::save(Archive & ar, const unsigned int version) const {
         ar << trained;
@@ -146,7 +146,7 @@ namespace garf {
     }
 
     // Load a RegressionForest. Only complication is we need to allocate new memory in the trees array
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     template<class Archive>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::load(Archive & ar, const unsigned int version) {
         ar >> trained;
@@ -164,8 +164,9 @@ namespace garf {
     }
 
     // Load & save a Multi dimensional Gaussian distribution
+    template<typename T>
     template<class Archive>
-    void MultiDimGaussianX::serialize(Archive & ar, const unsigned int version) {
+    void MultiDimGaussianX<T>::serialize(Archive & ar, const unsigned int version) {
         ar & const_cast<eigen_idx_t &>(dimensions);
         ar & mean;
         ar & cov;

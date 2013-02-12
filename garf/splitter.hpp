@@ -37,7 +37,9 @@ namespace garf {
         // Initialise to invalid values (-1, NaN) so we know if we are using uninitialised data
         AxisAlignedSplt() : feat_idx(-1), thresh(NaN) {} 
         inline char const * name() const { return "axis_aligned"; }
-        inline friend std::ostream& operator<< (std::ostream& stream, const AxisAlignedSplt& aas);
+
+        template<typename T>
+        inline friend std::ostream& operator<< (std::ostream& stream, const AxisAlignedSplt<T>& aas);
 #ifdef GARF_SERIALIZE_ENABLE
     private:
         friend class boost::serialization::access;
@@ -68,7 +70,9 @@ namespace garf {
         }
         TwoDimSplt(): feat_1(-1), feat_2(-1), weight_feat_1(NaN), weight_feat_2(NaN), thresh(NaN) {}
         inline char const * name() const { return "2_dim_hyp"; }
-        inline friend std::ostream& operator<< (std::ostream& stream, const TwoDimSplt& two_ds);
+
+        template<typename T>
+        inline friend std::ostream& operator<< (std::ostream& stream, const TwoDimSplt<T>& two_ds);
 #ifdef GARF_SERIALIZE_ENABLE
     private:
         friend class boost::serialization::access;

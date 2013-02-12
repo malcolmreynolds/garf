@@ -2,10 +2,10 @@
 
 namespace garf {
 
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
-    void RegressionTree<FeatT, LabT, SplitT, SplFitterT>::train(const feature_matrix & features,
-                                                   const label_matrix & labels,
-                                                   const indices_vector & data_indices,
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    void RegressionTree<FeatT, LabT, SplitT, SplFitterT>::train(const feature_mtx<FeatT> & features,
+                                                   const label_mtx<LabT> & labels,
+                                                   const data_indices_vec & data_indices,
                                                    const TreeOptions & tree_opts,
                                                    const SplitOptions & split_opts) {
         //LOG(INFO)
@@ -23,13 +23,13 @@ namespace garf {
         // then gets automatically deleted because it's on the stack. Also means once training
         // is done only the necessary data is left in the forest (to reduce memory usage
         // & serialization size)
-        SplFitterT fitter(split_opts, labels.cols(), tree_id); // seed RNG with the tree id
+        SplFitterT<FeatT, LabT> fitter(split_opts, labels.cols(), tree_id); // seed RNG with the tree id
         root->train(*this, features, labels, data_indices,
                     tree_opts, &fitter);
     }
 
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
-    const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & RegressionTree<FeatT, LabT, SplitT, SplFitterT>::evaluate(const feature_vector & fvec,
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & RegressionTree<FeatT, LabT, SplitT, SplFitterT>::evaluate(const feature_vec<FeatT> & fvec,
                                                                                             const PredictOptions & predict_opts) const {
         depth_idx_t current_depth = 0;
 

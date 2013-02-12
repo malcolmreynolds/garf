@@ -2,14 +2,14 @@
 
 namespace garf {
 
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     void RegressionNode<FeatT, LabT, SplitT, SplFitterT>::train(const RegressionTree<FeatT, LabT, SplitT, SplFitterT> & tree,
-                                                   const feature_matrix & features,
-                                                   const label_matrix & labels,
-                                                   const indices_vector & data_indices,
+                                                   const feature_mtx<FeatT> & features,
+                                                   const label_mtx<LabT> & labels,
+                                                   const data_indices_vec & data_indices,
                                                    const TreeOptions & tree_opts,
-                                                   SplFitterT * fitter,
-                                                   const MultiDimGaussianX * const _dist) {
+                                                   SplFitterT<FeatT, LabT> * fitter,
+                                                   const MultiDimGaussianX<LabT> * const _dist) {
         // Store the indices which pass through this node - this should do a copy. I hope!
         training_data_indices = data_indices;
         //LOG(INFO)
@@ -39,8 +39,8 @@ namespace garf {
         // get the indices going left and right from splitter object. We declare
         // them on the stack here, so that they are cleaned up at the end of this call to train()
         // automatically
-        indices_vector right_child_indices;
-        indices_vector left_child_indices;
+        data_indices_vec right_child_indices;
+        data_indices_vec left_child_indices;
 
         // bool good_split_found = true;
         bool good_split_found = fitter->choose_split_parameters(features, labels, data_indices, dist,
@@ -66,7 +66,7 @@ namespace garf {
     }
 
     // Determine whether the stop growing the tree at this node.
-    template<typename FeatT, typename LabT, class SplitT, class SplFitterT>
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     bool RegressionNode<FeatT, LabT, SplitT, SplFitterT>::stopping_conditions_reached(const TreeOptions & tree_opts) const {
         if (depth == tree_opts.max_depth) {
             return true; // Stop growing because we have reached max depth
