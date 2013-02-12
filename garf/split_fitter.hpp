@@ -20,6 +20,8 @@ namespace garf {
 
         std::mt19937_64 rng; // Mersenne twister
 
+        
+
         SplFitter(const SplitOptions & _split_opts, label_idx_t _label_dims, uint64_t seed_value=42)
                 : split_opts(_split_opts),
                   label_dims(_label_dims), 

@@ -46,7 +46,11 @@ namespace garf {
                 // gives us a vector [0, 1, 2, 3, ... num_data_points-1]
                 data_indices.setLinSpaced(num_datapoints, 0, num_datapoints - 1);
             }
-            trees[t].train(features, labels, data_indices, tree_options, split_options);
+
+            // If we build the splfitter here we open the possibility of each thread building their own only
+            // once, avoiding repeated memory allocation. yay!
+            SplFitterT<FeatT, LabT> fitter(split_options, labels.cols(), t);
+            trees[t].train(features, labels, data_indices, tree_options, &fitter);
         }
 
         // We are done, so set the forest as trained

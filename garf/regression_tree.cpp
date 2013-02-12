@@ -7,7 +7,7 @@ namespace garf {
                                                    const label_mtx<LabT> & labels,
                                                    const data_indices_vec & data_indices,
                                                    const TreeOptions & tree_opts,
-                                                   const SplitOptions & split_opts) {
+                                                   SplFitterT<FeatT, LabT> * fitter) {
         //LOG(INFO)
         std::cout << "[t" << tree_id << "].train() data_indices = [" << data_indices.transpose() << "]" << std::endl;
     
@@ -23,9 +23,9 @@ namespace garf {
         // then gets automatically deleted because it's on the stack. Also means once training
         // is done only the necessary data is left in the forest (to reduce memory usage
         // & serialization size)
-        SplFitterT<FeatT, LabT> fitter(split_opts, labels.cols(), tree_id); // seed RNG with the tree id
+        // SplFitterT<FeatT, LabT> fitter(split_opts, labels.cols(), tree_id); // seed RNG with the tree id
         root->train(*this, features, labels, data_indices,
-                    tree_opts, &fitter);
+                    tree_opts, fitter);
     }
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>

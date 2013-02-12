@@ -130,7 +130,7 @@ namespace garf {
                    const label_mtx<LabT> & labels,
                    const data_indices_vec & data_indices,
                    const TreeOptions & tree_opts,
-                   const SplitOptions & split_opts);
+                   SplFitterT<FeatT, LabT> * fitter);
 
         // Given some data vector, return a const reference to the node it would stop at
         const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & evaluate(const feature_vec<FeatT> & fvec,
