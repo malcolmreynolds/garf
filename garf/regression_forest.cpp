@@ -3,6 +3,74 @@
 
 namespace garf {
 
+#ifdef GARF_PARALLELIZE_TBB
+    // Used to synchronize access to cout to avoid absolute garbage (interleaved strings) on cout
+    tbb::mutex cout_mutex;
+
+// // using a temporary instead of returning one from a function avoids any issues with copies
+// FullExpressionAccumulator(std::cout) << val1 << val2 << val3;
+
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    class concurrent_tree_trainer {
+        boost::shared_array<RegressionTree<FeatT, LabT, SplitT, SplFitterT> > & trees;
+        const feature_mtx<FeatT> & all_features;
+        const label_mtx<LabT> & all_labels;
+        const RegressionForest<FeatT, LabT, SplitT, SplFitterT> & forest;
+        // const ForestStats & forest_stats;
+        // const SplitOptions & split_options;
+        // const ForestOptions & forest_options;
+    public:
+
+        // Need to make this get called with a larger rane
+        void operator() (const blocked_range<tree_idx_t> & r) const {
+
+            const datapoint_idx_t num_training_datapoints = all_features.rows();
+            const feat_idx_t data_dimensions = all_features.cols();
+            const label_idx_t label_dimensions = all_labels.cols();
+
+
+            // Make this distribution to pick the bagging indices
+            std::uniform_int_distribution<datapoint_idx_t> bagging_index_picker(0, num_training_datapoints - 1);
+
+
+            // We make a separate SplFitter for each parallel job, this contains the RNG and so on.
+            // FIXME: better random seed method here, currenlty just using the job id of the first tree?
+            SplFitterT<FeatT, LabT> fitter(forest.split_options, num_training_datapoints,
+                                           data_dimensions, label_dimensions, r.begin());
+            cout_mutex.lock();
+            std::cout << this << " got range [" << r.begin() << "," << r.end() << ") grain =  " << r.grainsize() << std::endl;
+            cout_mutex.unlock();
+            for (tree_idx_t t = r.begin(); t != r.end(); t++) {
+                trees[t].tree_id = t;
+
+                data_indices_vec data_indices(num_training_datapoints);
+                if (forest.forest_options.bagging) {
+                    // Sample indices from the full dataset WITH REPLACEMENT!!!
+                    for (datapoint_idx_t d = 0; d < num_training_datapoints; d++) {
+                        data_indices(d) = bagging_index_picker(fitter.rng);
+                    }
+                } else {
+                    // gives us a vector [0, 1, 2, 3, ... num_data_points-1]
+                    data_indices.setLinSpaced(num_training_datapoints, 0, num_training_datapoints - 1);
+                }
+
+                trees[t].train(all_features, all_labels, data_indices, forest.tree_options, &fitter);
+                // std::cout << "training for tree " << t << " done" << std::endl;
+            }
+        }
+
+        concurrent_tree_trainer(boost::shared_array<RegressionTree<FeatT, LabT, SplitT, SplFitterT> > & _trees,
+                                const feature_mtx<FeatT> & _all_features,
+                                const label_mtx<LabT> & _all_labels,
+                                const RegressionForest<FeatT, LabT, SplitT, SplFitterT> & _forest)
+            : trees(_trees), all_features(_all_features), all_labels(_all_labels), forest(_forest) {
+        }
+
+    };
+
+#endif
+
+
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::train(const feature_mtx<FeatT> & features, const label_mtx<LabT> & labels) {
         if (trained) {
@@ -29,6 +97,13 @@ namespace garf {
         forest_stats.num_trees = forest_options.max_num_trees;
         std::cout << "created " << forest_stats.num_trees << " trees" << std::endl;
 
+#ifdef GARF_PARALLELIZE_TBB
+        std::cout << "training using TBB" << std::endl;
+        // FIXME! Work out how to actually work out the number of
+        // threads TBB will use, rather than guess
+        parallel_for(blocked_range<tree_idx_t>(0, forest_options.max_num_trees, 250),
+                     concurrent_tree_trainer<FeatT, LabT, SplitT, SplFitterT>(trees, features, labels, *this));
+#else
         // Create a RNG which we will need for picking the bagging indices, plus the uniform distribution
         std::mt19937_64 rng; // Mersenne twister
         std::uniform_int_distribution<datapoint_idx_t> bagging_index_picker(0, num_datapoints - 1);
@@ -53,6 +128,7 @@ namespace garf {
                                            forest_stats.data_dimensions, forest_stats.label_dimensions, t);
             trees[t].train(features, labels, data_indices, tree_options, &fitter);
         }
+#endif
         // We are done, so set the forest as trained
         trained = true;
     }
@@ -163,7 +239,9 @@ namespace garf {
         // I have chosen to do it this way as it means we only need to do the actual predictions - working out which leaf
         // node a particular datapoint lands at - the minimum number of times.
         for (feat_idx_t feat_vec_idx = 0; feat_vec_idx < num_datapoints_to_predict; feat_vec_idx++) {
+#ifdef VERBOSE
             std::cout << "predicting on datapoint #" << feat_vec_idx << ": " << features.row(feat_vec_idx) << std::endl;
+#endif
             // for each datapoint, we want to work out the set of leaf nodes it reaches, 
             // then worry about whether we are calculating variances or whatever else. We fill our scoped_array
             // with pointers to the leaf node reached by each datapoint

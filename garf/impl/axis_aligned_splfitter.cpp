@@ -87,25 +87,34 @@ namespace garf {
                                                        data_indices_vec * right_child_indices_out) {
         const datapoint_idx_t num_in_parent = parent_data_indices.size();
         const SplitOptions & split_opts = this->split_opts;
-
+#ifdef VERBOSE
         std::cout << "candidate_feature_values.shape = " << candidate_feature_values.rows()
             << "x" << candidate_feature_values.cols() << std::endl;
+#endif
 
         select_candidate_features();
+#ifdef VERBOSE
         std::cout << "parent_data_indices = " << parent_data_indices.transpose()
             << " num_in_parent = " << num_in_parent 
             << " feat_indices = " << feature_indices_to_evaluate.transpose() << std::endl;
+#endif
 
         evaluate_datapoints_at_each_feature(all_features, parent_data_indices, num_in_parent);
+#ifdef VERBOSE
         std::cout << "feature values = " << candidate_feature_values.topRows(num_in_parent) << std::endl;
         // std::cout << "full feature values = " << candidate_feature_values << std::endl;
+#endif
 
         find_min_max_features(num_in_parent);
+#ifdef VERBOSE
         std::cout << "min features: " << min_feature_values << std::endl;
         std::cout << "max features: " << max_feature_values << std::endl;
+#endif
 
         generate_split_thresholds();
+#ifdef VERBOSE
         std::cout << "thresholds = " << std::endl << split_thresholds << std::endl;
+#endif
 
         // Store best information gain so far in here
         best_inf_gain = -std::numeric_limits<LabT>::infinity();
@@ -120,6 +129,7 @@ namespace garf {
                 evaluate_single_split(parent_data_indices, num_in_parent, split_idx, split_thresholds(split_idx, thresh_idx),
                                       &candidate_split_directions, &samples_going_left, &samples_going_right,
                                       &num_going_left, &num_going_right);
+#ifdef VERBOSE                
                 std::cout << "split #" << split_idx << " thresh #" << thresh_idx << " = " << split_thresholds(split_idx, thresh_idx);
                 std::cout << ", candidate split directions = ";
                 for (datapoint_idx_t i = 0; i < num_in_parent; i++) {
@@ -131,17 +141,22 @@ namespace garf {
                 }
                 std::cout << " " << num_going_left << " going left: [" << samples_going_left.head(num_going_left).transpose() << "] : "
                     << num_going_right << " going right: [" << samples_going_right.head(num_going_right).transpose() << "]" << std::endl;
+#endif
 
                 // Now work out the information gain. First fit gaussians
                 this->left_child_dist.fit_params(all_labels, samples_going_left, num_going_left);
                 this->right_child_dist.fit_params(all_labels, samples_going_right, num_going_right);
+#ifdef VERBOSE
                 std::cout << "P" << num_in_parent << parent_dist
                     << " L" << num_going_left << this->left_child_dist
                     << " R" << num_going_right << this->right_child_dist << " ";
+#endif
 
                 double inf_gain = information_gain(parent_dist, this->left_child_dist, this->right_child_dist,
                                                    num_in_parent, num_going_left, num_going_right);
+#ifdef VERBOSE
                 std::cout << "igain: " << inf_gain << std::endl << std::endl;
+#endif
 
                 // FIXME: also test if this is a decent split at this point
                 if ((inf_gain > best_inf_gain)
@@ -159,8 +174,10 @@ namespace garf {
                     // Send the output data (ie which data goes left / right) to node::train()
                     *left_child_indices_out = samples_going_left.head(num_going_left);
                     *right_child_indices_out = samples_going_right.head(num_going_right);
-
-                    std::cout << "found new best split: " << *split << std::endl;
+#ifdef VERBOSE
+                    std::cout << "found new best split: " << *split << " - "
+                        << num_going_left << "/" << num_going_right << std::endl;
+#endif
                 }
             }
         }

@@ -24,12 +24,14 @@ namespace garf {
         inf_gain -= ((num_in_right * log_det_right) / static_cast<double>(num_in_parent));
 
         if (inf_gain == std::numeric_limits<double>::infinity()) {
+#ifdef VERBOSE
             // LOG(ERROR)
             std::cout << std::endl << "infinite information gain from " << std::endl 
                 << "parent:" << num_in_parent << ":" << parent_dist << std::endl
                 << "left:" << num_in_left << ":" << left_dist << std::endl
                 << "right:" << num_in_right << ":" << right_dist << std::endl
                 << "is being replaced with -Inf" << std::endl;
+#endif
             inf_gain = -std::numeric_limits<double>::infinity();
         }
 

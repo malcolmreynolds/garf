@@ -79,7 +79,9 @@ namespace garf {
         ar << split;
         ar << is_leaf;
         ar << training_data_indices;
+#ifdef VERBOSE
         std::cout << "saved node " << node_id << " with datapoints " << training_data_indices.transpose() << std::endl;
+#endif
         // Only serialize children if there are any
         if (!is_leaf) {
             ar << left;
@@ -100,8 +102,9 @@ namespace garf {
         ar >> split;
         ar >> is_leaf;
         ar >> training_data_indices;
-
+#ifdef VERBOSE
         std::cout << "loaded node " << node_id << " with datapoints " << training_data_indices.transpose() << std::endl;
+#endif
 
         if (!is_leaf) {
             ar >> left;

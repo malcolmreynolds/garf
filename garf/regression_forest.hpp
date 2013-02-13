@@ -1,14 +1,29 @@
 #ifndef GARF_REGRESSION_FOREST_HPP
 #define GARF_REGRESSION_FOREST_HPP
 
+
+
+#ifdef GARF_SERIALIZE_ENABLE
 #include <boost/scoped_array.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
+#endif
+
+#ifdef GARF_PARALLELIZE_TBB
+#include "tbb/parallel_for.h"
+#include "tbb/blocked_range.h"
+#include "tbb/atomic.h"
+#include "tbb/mutex.h"
+using namespace tbb;
+#endif
+
 
 #include <stdexcept>
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
+
+// #include "util/logging.hpp"
 
 #include "types.hpp"
 #include "options.hpp"

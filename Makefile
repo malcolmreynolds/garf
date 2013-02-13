@@ -1,10 +1,10 @@
 CXX=clang++
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra -std=c++0x -stdlib=libc++ -ferror-limit=3
+CXXFLAGS += -O3 -g -Wall -Wextra -std=c++0x -stdlib=libc++ -ferror-limit=3
 
 
 # Eigen
-CXXFLAGS += -I/usr/local/include/eigen3  -Wno-unused-parameter
+CXXFLAGS += -I/usr/local/include/eigen3  -Wno-unused-parameter -I/opt/include/
 
 
 # Google Test stuff - taken from the gtest sample1 makefile
@@ -14,10 +14,23 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
 GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 
+# # Pantheios stuff
+# PAN_LDFLAGS = -lpantheios.1.core.gcc42 \
+#               -lpantheios.1.be.fprintf.gcc42 \
+#               -lpantheios.1.bec.fprintf.gcc42 \
+#               -lpantheios.1.util.gcc42 \
+#               -lpantheios.1.fe.N.gcc42 \
+#               -L/opt/lib
+
+# Log4cplus
+LDFLAGS += -llog4cplus
+
 # Google logging
-LDFLAGS += -stdlib=libc++ -lboost_serialization-mt
+CPPFLAGS += -I/opt/include
+LDFLAGS += -stdlib=libc++ -lboost_serialization-mt  -ltbb
 TEST_LDFLAGS +=  -lpthread
 
+ 
 
 TESTS = bin/gaussian_tests bin/forest_tests
 

@@ -13,22 +13,29 @@ namespace garf {
         // Store the indices which pass through this node - this should do a copy. I hope!
         training_data_indices = data_indices;
         //LOG(INFO)
+#ifdef VERBOSE
         std::cout << "[t" << tree.tree_id << ":" << node_id << "] got " << num_training_datapoints()
             << " datapoints: [" << data_indices.transpose() << "]" << std::endl;
-
+#endif
         if (_dist == NULL) {
             //LOG(INFO)
+#ifdef VERBOSE
             std::cout << "[t" << tree.tree_id << ":" << node_id << "] no dist provided, calculating..." << std::endl;
+#endif
             dist.fit_params(labels, data_indices);
         }
         else {
             //LOG(INFO)
+#ifdef VERBOSE
             std::cout << "[t" << tree.tree_id << ":" << node_id << "] using provided distribution" << std::endl;
+#endif
             dist.mean = _dist->mean;
             dist.cov = _dist->cov;
         }
         //LOG(INFO)
+#ifdef VERBOSE
         std::cout << "[t" << tree.tree_id << ":" << node_id << "] dist = " << dist << std::endl;
+#endif
 
         // Check whether to stop growing now. NB: even if this returns false, we might
         // still stop growing if we cannot find a decent split (see below)
@@ -48,7 +55,9 @@ namespace garf {
 
         if (!good_split_found) {
             //LOG(ERROR)
+#ifdef VERBOSE_
             std::cout << "[t" << tree.tree_id << ":" << node_id << "] didn't find a good split, stopping" << std::endl;
+#endif
             return;
         }
 
