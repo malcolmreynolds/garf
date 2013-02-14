@@ -1,7 +1,7 @@
 #ifndef GARF_UTIL_MULTI_DIM_GAUSSIAN_HPP
 #define GARF_UTIL_MULTI_DIM_GAUSSIAN_HPP
 
-#include <iostream>
+// #include <iostream>
 #include <stdexcept>
 
 #include "../types.hpp"
@@ -362,11 +362,11 @@ namespace garf {
             cov /= (num_input_datapoints - 1);
         }
 
-        void print() const {
-            std::cout << "MVN dims = " << dimensions << std::endl 
-                << "mean:" << std::endl << mean <<  std::endl
-                << "cov:" << std::endl  << cov << std::endl;
-        }
+        // void print() const {
+        //     std::cout << "MVN dims = " << dimensions << std::endl 
+        //         << "mean:" << std::endl << mean <<  std::endl
+        //         << "cov:" << std::endl  << cov << std::endl;
+        // }
 
         template<typename T1>
         friend std::ostream& operator<< (std::ostream& stream, const MultiDimGaussianX<T1>& mdg) {

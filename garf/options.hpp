@@ -6,6 +6,8 @@
 #include <boost/archive/text_iarchive.hpp>
 #endif
 
+#include "types.hpp"
+
 namespace garf {
 
     // Options which work at the top level of training - how
