@@ -30,7 +30,7 @@ using namespace tbb;
 #include "util/multi_dim_gaussian.hpp"
 
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
-// #include "util/python_eigen.hpp"
+#include "util/python_eigen.hpp"
 #endif
 
 
@@ -236,9 +236,10 @@ namespace garf {
         }
 
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
-        // PyObject* numpy_object() const {
-        //     return get_new_numpy_array();
-        // }
+        PyObject* numpy_object() const {
+            // import_array();
+            return get_new_numpy_array();
+        }
 #endif
 
 #ifdef GARF_SERIALIZE_ENABLE

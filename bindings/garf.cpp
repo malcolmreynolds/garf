@@ -23,6 +23,8 @@ using namespace garf;
 
 BOOST_PYTHON_MODULE(_garf) {
 
+    import_array();
+
     class_<ForestOptions>("ForestOptions")
         .def_readwrite("max_num_trees", &ForestOptions::max_num_trees)
         .def_readwrite("bagging", &ForestOptions::bagging);
@@ -51,7 +53,7 @@ BOOST_PYTHON_MODULE(_garf) {
                       return_internal_reference<>()))
         .def("get_tree", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::get_tree,
              return_value_policy<copy_const_reference>())
-        // .def("numpy_object", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::numpy_object)
+        .def("numpy_object", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::numpy_object)
         .def("load_forest", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::load_forest)
         .def("save_forest", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::save_forest);
 
