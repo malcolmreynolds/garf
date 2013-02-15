@@ -237,8 +237,13 @@ namespace garf {
 
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
         PyObject* numpy_object() const {
-            // import_array();
-            return get_new_numpy_array();
+            MatrixXd test(3, 4);
+            test.row(0).setLinSpaced(4, 0, 3);
+            test.row(1).setLinSpaced(4, 4, 7);
+            test.row(2).setLinSpaced(4, 8, 11);
+
+            std::cout << "trying to return to numpy.. eigen = "  << std::endl << test << std::endl;
+            return eigen_to_numpy_copy(test);
         }
 #endif
 
