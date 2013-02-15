@@ -53,7 +53,8 @@ BOOST_PYTHON_MODULE(_garf) {
                       return_internal_reference<>()))
         .def("get_tree", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::get_tree,
              return_value_policy<copy_const_reference>())
-        .def("numpy_object", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::numpy_object)
+        .def("numpy_object_float", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::numpy_object_float)
+        .def("numpy_object_double", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::numpy_object_double)
         .def("load_forest", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::load_forest)
         .def("save_forest", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::save_forest);
 
