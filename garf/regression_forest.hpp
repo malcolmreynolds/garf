@@ -23,13 +23,15 @@ using namespace tbb;
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
-// #include "util/logging.hpp"
-
 #include "types.hpp"
 #include "options.hpp"
 #include "splitter.hpp"
 #include "split_fitter.hpp"
 #include "util/multi_dim_gaussian.hpp"
+
+#ifdef GARF_PYTHON_BINDINGS_ENABLE
+// #include "util/python_eigen.hpp"
+#endif
 
 
 namespace garf {
@@ -111,9 +113,27 @@ namespace garf {
         inline uint32_t num_training_datapoints() const { return training_data_indices.size(); }
         inline node_idx_t left_child_index() const { return (2 * node_id) + 1; }
         inline node_idx_t right_child_index() const { return (2 * node_id) + 2; }
+        inline datapoint_idx_t num_samples() const { return training_data_indices.size(); }
 
         template<typename F, typename L, template<typename> class S, template<typename,typename> class ST>
         friend std::ostream& operator<< (std::ostream& stream, const RegressionNode<F, L, S, ST> & node);
+
+        // Stuff mainly for python bindings
+        const RegressionNode<double, double, AxisAlignedSplt, AxisAlignedSplFitter> & get_left() const {
+            if (is_leaf) {
+                throw std::logic_error("leaf node has no left child");
+            }
+            return *left;
+        }
+
+        const RegressionNode<double, double, AxisAlignedSplt, AxisAlignedSplFitter> & get_right() const {
+            if (is_leaf) {
+                throw std::logic_error("leaf node has no right child");
+            }
+            return *right;
+        }
+// #ifdef GAR
+
 
 #ifdef GARF_SERIALIZE_ENABLE
         // Zero arg constructor just for serialization of things inside a shared_ptr
@@ -148,6 +168,13 @@ namespace garf {
 
         template<typename F, typename L, template<typename> class S, template<typename,typename> class ST>
         friend std::ostream& operator<< (std::ostream& stream, const RegressionTree<F, L, S, ST> & tree);
+
+        const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & get_root() const {
+            if (root.get() == 0) {
+                throw std::logic_error("Tree doesn't have a root");
+            }
+            return *root;
+        }
 
 #ifdef GARF_SERIALIZE_ENABLE
     private:
@@ -199,6 +226,20 @@ namespace garf {
 
         // Get a const reference to the forest stats, so they can't be changed
         inline const ForestStats & stats() const { return forest_stats; }
+
+        inline const RegressionTree<FeatT, LabT, SplitT, SplFitterT> & get_tree(tree_idx_t t_id) const {
+            if (t_id < forest_stats.num_trees) {
+                return trees[t_id];
+            } else {
+                throw std::invalid_argument("invalid tree_id provided");
+            }
+        }
+
+#ifdef GARF_PYTHON_BINDINGS_ENABLE
+        // PyObject* numpy_object() const {
+        //     return get_new_numpy_array();
+        // }
+#endif
 
 #ifdef GARF_SERIALIZE_ENABLE
         void save_forest(std::string filename) const;

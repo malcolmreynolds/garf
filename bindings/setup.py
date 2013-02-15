@@ -1,16 +1,24 @@
 from distutils.core import setup
 from distutils.extension import Extension
+import numpy as np
 # from Cython.Distutils import build_ext
 # from Cython.Build import cythonize
 
 include_dirs = ['/Users/malc/phd/proj/garf',
                 '/usr/local/include/eigen3',
-                '/usr/local/include/']
+                '/usr/local/include/',
+                np.get_include()
+                ]
 
 library_dirs = ['/usr/local/lib']
-libraries = ['boost_python-mt', 'boost_serialization-mt']
+libraries = ['boost_python-mt', 'boost_serialization-mt', 'tbb']
 
 setup(
+    name="GARF",
+    version="1.0",
+    description="Python bindings for GARF random forest library",
+    author="Malcolm Reynolds",
+    author_email="malcolm.reynolds@gmail.com",
     ext_modules=[
         Extension("_garf",
             ["garf.cpp"],

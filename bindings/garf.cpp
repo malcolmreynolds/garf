@@ -12,6 +12,8 @@ using namespace boost::python;
 #endif
 
 #define GARF_SERIALIZE_ENABLE
+#define GARF_PYTHON_BINDINGS_ENABLE
+#define GARF_PARALLELIZE_TBB
 
 #include "garf/options.hpp"
 #include "garf/regression_forest.hpp"
@@ -45,8 +47,30 @@ BOOST_PYTHON_MODULE(_garf) {
 
     class_<RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter> >("RegressionForest")
         .add_property("trained", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::is_trained)
-        .add_property("stats", make_function(&RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::stats, return_internal_reference<>()))
-        .def("load_forest", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::load_forest);
+        .add_property("stats", make_function(&RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::stats,
+                      return_internal_reference<>()))
+        .def("get_tree", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::get_tree,
+             return_value_policy<copy_const_reference>())
+        // .def("numpy_object", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::numpy_object)
+        .def("load_forest", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::load_forest)
+        .def("save_forest", &RegressionForest<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::save_forest);
+
+    class_<RegressionTree<double, double, AxisAlignedSplt, AxisAlignedSplFitter> >("RegressionTree")
+        .def_readonly("tree_id", &RegressionTree<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::tree_id)
+        .add_property("root", make_function(&RegressionTree<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::get_root,
+                                            return_value_policy<copy_const_reference>()));
+
+    class_<RegressionNode<double, double, AxisAlignedSplt, AxisAlignedSplFitter> >("RegressionNode")
+        .def_readonly("is_leaf", &RegressionNode<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::is_leaf)
+        .def_readonly("id", &RegressionNode<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::node_id)
+        .def_readonly("depth", &RegressionNode<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::depth)
+        .add_property("num_samples", make_function(&RegressionNode<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::num_samples))
+        .add_property("l", make_function(&RegressionNode<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::get_left,
+                                         return_value_policy<copy_const_reference>()))
+        .add_property("r", make_function(&RegressionNode<double, double, AxisAlignedSplt, AxisAlignedSplFitter>::get_right,
+                                         return_value_policy<copy_const_reference>()));
+
+
 
 
 //     enum_<forest_split_type_t>("ForestSplitType")
