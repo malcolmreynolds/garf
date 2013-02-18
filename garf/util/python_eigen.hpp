@@ -2,7 +2,7 @@
 #define GARF_UTIL_PYTHON_EIGEN_HPP
 
 // The include directory for this should be automatically taken care of
-// by np.get_include() in the setup.py file
+// by np.get_include() in the setup.py file. 
 #include "numpy/arrayobject.h"
 
 namespace garf {
@@ -38,11 +38,10 @@ namespace garf {
         return mtx_numpy;
     }
 
-    // Need a way to make a temporary non-modifiable Eigen object from a matrix
-    // passed in by Numpy..
-
+    // Need a way to make a temporary  Eigen object from a matrix
+    // passed in by Numpy. This allows us to both read from and write to python-side objects without copying
     template<typename T>
-    const Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> * numpy_to_eigen_map(PyObject * numpy_array) {
+    Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> * numpy_to_eigen_map(PyObject * numpy_array) {
 
         if (!PyArray_Check(numpy_array)) {
             throw std::invalid_argument("supplied python object is not a Numpy Array");
@@ -73,21 +72,16 @@ namespace garf {
             throw std::invalid_argument("cannot perform conversion, contiguity is a problem!");
         }
 
+        // FIXME! I'm not really sure this is the best way to do this...
+        if (sizeof(T) != PyArray_DESCR(numpy_array)->elsize) {
+            throw std::invalid_argument("numpy array elsize doesn't match the type we have templated this function on");
+        }
+
+
         Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> * ret_val = 
             new Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>((T*)PyArray_DATA(numpy_array), rows, cols);
 
         return ret_val;
-    }
-
-    PyObject* get_new_numpy_array() {
-        npy_intp * dims = new npy_intp[2];
-        dims[0] = 3;
-        dims[1] = 4;
-        PyObject* data = PyArray_SimpleNew(2, dims, NPY_FLOAT);
-
-        delete [] dims;
-
-        return data;
     }
 }
 

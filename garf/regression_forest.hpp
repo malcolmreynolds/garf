@@ -53,8 +53,8 @@ namespace garf {
     };
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT> class RegressionTree;
-    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>class RegressionNode;
-    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>class RegressionForest;
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT> class RegressionNode;
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT> class RegressionForest;
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     class RegressionNode {
@@ -241,7 +241,19 @@ namespace garf {
         }
 
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
-        void py_train(PyObject * features_numpy, PyObject * labels_numpy);
+        void py_train(PyObject * features_np, PyObject * labels_np);
+
+        // We overload all of these so that they all have the name _predict in python - see garf.cpp
+        void py_predict_mean(PyObject * features_np,
+                             PyObject * predict_mean_out_np);
+        void py_predict_mean_var(PyObject * features_np,
+                                 PyObject * predict_mean_out_np,
+                                 PyObject * predict_var_out_np) const;
+        void py_predict_mean_var_leaves(PyObject * features_np,
+                                        PyObject * predict_mean_out_np,
+                                        PyObject * predict_var_out_np,
+                                        PyObject * leaf_indices_out_np) const;
+
 #endif
 
 
