@@ -19,6 +19,7 @@ setup(
     description="Python bindings for GARF random forest library",
     author="Malcolm Reynolds",
     author_email="malcolm.reynolds@gmail.com",
+    packages=["garf"],
     ext_modules=[
         Extension("_garf",
             ["garf.cpp"],

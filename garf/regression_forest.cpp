@@ -101,7 +101,7 @@ namespace garf {
         std::cout << "training using TBB" << std::endl;
         // FIXME! Work out how to actually work out the number of
         // threads TBB will use, rather than guess
-        parallel_for(blocked_range<tree_idx_t>(0, forest_options.max_num_trees, 250),
+        parallel_for(blocked_range<tree_idx_t>(0, forest_options.max_num_trees, 1),
                      concurrent_tree_trainer<FeatT, LabT, SplitT, SplFitterT>(trees, features, labels, *this));
 #else
         // Create a RNG which we will need for picking the bagging indices, plus the uniform distribution
@@ -302,6 +302,26 @@ namespace garf {
         stream << frst.forest_stats.num_trees << " trees]";
         return stream;
     }
+
+#ifdef GARF_PYTHON_BINDINGS_ENABLE
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_train(PyObject * features_numpy,
+                                                                     PyObject * labels_numpy) {
+        std::cout << "inside train_py" << std::endl;
+
+        // This stuff is a bit hairy - we need to deallocate this ourselves. 
+        boost::shared_ptr<const Eigen::Map<feature_mtx<FeatT> > > features(numpy_to_eigen_map<FeatT>(features_numpy));
+        std::cout << "after conversion into eigen:" << std::endl
+            << "features.shape = (" << features->rows() << "," << features->cols()
+            << "), contents = " << std::endl << *features << std::endl;
+
+        boost::shared_ptr<const Eigen::Map<label_mtx<LabT> > > labels(numpy_to_eigen_map<LabT>(labels_numpy));
+        std::cout << "labels.shape = (" << labels->rows() << "," << labels->cols()
+            << "), contents = " << std::endl << *labels << std::endl;
+
+        train(*features, *labels);
+    }
+#endif
 
 
 

@@ -119,21 +119,26 @@ namespace garf {
         friend std::ostream& operator<< (std::ostream& stream, const RegressionNode<F, L, S, ST> & node);
 
         // Stuff mainly for python bindings
-        const RegressionNode<double, double, AxisAlignedSplt, AxisAlignedSplFitter> & get_left() const {
+        const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & get_left() const {
             if (is_leaf) {
                 throw std::logic_error("leaf node has no left child");
             }
             return *left;
         }
 
-        const RegressionNode<double, double, AxisAlignedSplt, AxisAlignedSplFitter> & get_right() const {
+        const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & get_right() const {
             if (is_leaf) {
                 throw std::logic_error("leaf node has no right child");
             }
             return *right;
         }
-// #ifdef GAR
 
+#ifdef GARF_PYTHON_BINDINGS_ENABLE
+        const MultiDimGaussianX<LabT> & get_dist() const { return dist; }
+        inline PyObject* get_training_indices() const {
+            return eigen_to_numpy_copy<datapoint_idx_t>(training_data_indices);
+        }
+#endif
 
 #ifdef GARF_SERIALIZE_ENABLE
         // Zero arg constructor just for serialization of things inside a shared_ptr
@@ -236,26 +241,9 @@ namespace garf {
         }
 
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
-        PyObject* numpy_object_double() const {
-            Eigen::MatrixXd test(3, 4);
-            test.row(0).setLinSpaced(4, 0, 3);
-            test.row(1).setLinSpaced(4, 4, 7);
-            test.row(2).setLinSpaced(4, 8, 11);
-
-            std::cout << "trying to return to numpy.. eigen = "  << std::endl << test << std::endl;
-            return eigen_to_numpy_copy(test);
-        }
-
-        PyObject* numpy_object_float() const {
-            Eigen::MatrixXf test(3, 4);
-            test.row(0).setLinSpaced(4, 0, 3);
-            test.row(1).setLinSpaced(4, 4, 7);
-            test.row(2).setLinSpaced(4, 8, 11);
-
-            std::cout << "trying to return to numpy.. eigen = "  << std::endl << test << std::endl;
-            return eigen_to_numpy_copy(test);
-        }
+        void py_train(PyObject * features_numpy, PyObject * labels_numpy);
 #endif
+
 
 #ifdef GARF_SERIALIZE_ENABLE
         void save_forest(std::string filename) const;
