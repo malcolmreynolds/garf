@@ -37,9 +37,10 @@ namespace garf {
             cov.setZero();
         }
 
+        template<typename Da, typename Db>
         inline MultiDimGaussianX(eigen_idx_t _dimensions,
-                                 vec<T> _mean,
-                                 mtx<T> _cov) : dimensions(_dimensions) {
+                                 MatrixBase<Da> _mean,
+                                 MatrixBase<Db> _cov) : dimensions(_dimensions) {
             // Check size of the provided mean and cov..
             // This complicated test allows to have the mean vector either way round
             if (!(((_mean.rows() == dimensions) && (_mean.cols() == 1)) ||
@@ -56,14 +57,16 @@ namespace garf {
             cov = _cov;
         }
 
-        inline void check_data_dimensionality(const mtx<T> & input_data) const {
+        template<typename D>
+        inline void check_data_dimensionality(const MatrixBase<D> & input_data) const {
             eigen_idx_t input_data_dimensionality = input_data.cols();
             if (input_data_dimensionality != dimensions) {
                 throw std::invalid_argument("input data dimensionality doesn't match in fit_params");   
             }
         }
 
-        inline void test_func(const MatrixBase<T> & test) const {
+        template<typename D>
+        inline void test_func(const MatrixBase<D> & test) const {
             eigen_idx_t rows, cols;
             rows = test.rows();
             cols = test.cols();
@@ -78,7 +81,8 @@ namespace garf {
             should be (same as our dimensionality) we don't know the other one, and we
             can't template the entire program on every possible dataset size
          */
-        inline void fit_params(const mtx<T> & input_data) {
+        template<typename D>
+        inline void fit_params(const MatrixBase<D> & input_data) {
             check_data_dimensionality(input_data);
             eigen_idx_t num_input_datapoints = input_data.rows();
 
@@ -123,6 +127,7 @@ namespace garf {
 
         /* As above, but allows us to also pass a vector of indices indicating only
            certain rows of the data matrix should be considered */
+        
         inline void fit_params(const mtx<T> & input_data, const data_indices_vec & valid_indices) {
             check_data_dimensionality(input_data);
             eigen_idx_t num_input_datapoints = valid_indices.size();

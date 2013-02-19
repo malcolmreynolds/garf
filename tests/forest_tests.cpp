@@ -21,9 +21,8 @@ using Eigen::MatrixXd;
 #define GARF_PARALLELIZE_TBB
 
 #include "garf/regression_forest.hpp"
-
-
 typedef garf::RegressionForest<double, double, garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest_ax_align;
+
 
 const double tol = 0.00001;
 
@@ -165,7 +164,7 @@ TEST(ForestTest, MDGTest) {
     MatrixXd blah(4,4);
     blah.setRandom();
 
-    // mdg.test_func(blah);
+    mdg.test_func(blah);
 
     EXPECT_TRUE(true);
 }
