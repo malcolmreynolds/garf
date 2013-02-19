@@ -5,14 +5,15 @@
 #include <Eigen/Core>
 // #include <Eigen/VectorwiseOp.h>
 
+using namespace Eigen;
 
-using Eigen::Matrix;
-using Eigen::RowVectorXd;
-using Eigen::Vector3d;
-using Eigen::VectorXd;
-using Eigen::VectorXi;
-using Eigen::Matrix3d;
-using Eigen::MatrixXd;
+// using Eigen::Matrix;
+// using Eigen::RowVectorXd;
+// using Eigen::Vector3d;
+// using Eigen::VectorXd;
+// using Eigen::VectorXi;
+// using Eigen::Matrix3d;
+// using Eigen::MatrixXd;
 
 namespace garf {
 

@@ -159,6 +159,17 @@ TEST(ForestTest, RegTest1) {
                           noise_variance, answer_tolerance);
 }
 
+TEST(ForestTest, MDGTest) {
+    garf::MultiDimGaussianX<double> mdg(3);
+
+    MatrixXd blah(4,4);
+    blah.setRandom();
+
+    // mdg.test_func(blah);
+
+    EXPECT_TRUE(true);
+}
+
 // TEST(ForestTest, RegTest2) {
 //     forest_ax_align forest;
 //     forest.forest_options.max_num_trees = 10;

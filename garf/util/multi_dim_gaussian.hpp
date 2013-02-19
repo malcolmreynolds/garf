@@ -6,7 +6,9 @@
 
 #include "../types.hpp"
 
+#ifdef GARF_PYTHON_BINDINGS_ENABLE
 #include "../util/python_eigen.hpp"
+#endif
 
 namespace garf {
 
@@ -59,6 +61,15 @@ namespace garf {
             if (input_data_dimensionality != dimensions) {
                 throw std::invalid_argument("input data dimensionality doesn't match in fit_params");   
             }
+        }
+
+        inline void test_func(const MatrixBase<T> & test) const {
+            eigen_idx_t rows, cols;
+            rows = test.rows();
+            cols = test.cols();
+
+            std::cout << "in test_func, test has shape " << rows << "x" << cols << std::endl
+                << test << std::endl;
         }
 
         /**
