@@ -98,11 +98,10 @@ namespace garf {
 
         // First 5 arguments all compulsory. Last one allows us to optionally
         // provide an initial distribution, which otherwise we will need to calculate
-        template<typename Da, typename Db, typename Dc>
         void train(const RegressionTree<FeatT, LabT, SplitT, SplFitterT> & tree,
-                   const MatrixBase<Da> & features,
-                   const MatrixBase<Db> & labels,
-                   const MatrixBase<Dc> & data_indices,
+                   const feature_mtx<FeatT> & features,
+                   const label_mtx<LabT> & labels,
+                   const data_indices_vec & data_indices,
                    const TreeOptions & tree_opts,
                    SplFitterT<FeatT, LabT> * fitter,
                    const MultiDimGaussianX<LabT> * const _dist = NULL);
@@ -163,16 +162,14 @@ namespace garf {
     public:
         tree_idx_t tree_id;
 
-        template<typename Da, typename Db, typename Dc>
-        void train(const MatrixBase<Da> & features,
-                   const MatrixBase<Db> & labels,
-                   const MatrixBase<Dc> & data_indices,
+        void train(const feature_mtx<FeatT> & features,
+                   const label_mtx<LabT> & labels,
+                   const data_indices_vec & data_indices,
                    const TreeOptions & tree_opts,
                    SplFitterT<FeatT, LabT> * fitter);
 
         // Given some data vector, return a const reference to the node it would stop at
-        template<typename D>
-        const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & evaluate(const MatrixBase<D> & fvec,
+        const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & evaluate(const feature_vec<FeatT> & fvec,
                                                                          const PredictOptions & predict_options) const;
 
         template<typename F, typename L, template<typename> class S, template<typename,typename> class ST>
@@ -203,18 +200,12 @@ namespace garf {
         boost::shared_array<RegressionTree<FeatT, LabT, SplitT, SplFitterT> > trees;
 
         // Checking the size of inputs given during prediction
-        template<typename D>
-        void check_label_output_matrix(MatrixBase<D> * const labels_out, datapoint_idx_t num_datapoints_to_predict) const;
-
-        template<typename D>
-        bool check_variance_output_matrix(MatrixBase<D> * const variances_out, datapoint_idx_t num_datapoints_to_predict) const;
-
-        template<typename D>
-        bool check_leaf_index_output_matrix(MatrixBase<D> * const leaf_indices_out, datapoint_idx_t num_datapoints_to_predict) const;
+        void check_label_output_matrix(label_mtx<LabT> * const labels_out, datapoint_idx_t num_datapoints_to_predict) const;
+        bool check_variance_output_matrix(label_mtx<LabT> * const variances_out, datapoint_idx_t num_datapoints_to_predict) const;
+        bool check_leaf_index_output_matrix(tree_idx_mtx * const leaf_indices_out, datapoint_idx_t num_datapoints_to_predict) const;
 
         // Actually do a single prediction - fill the provided output vector with pointers to the leaf nodes reached
-        template<typename D>
-        void predict_single_vector(const MatrixBase<D> & feature_vec,
+        void predict_single_vector(const feature_vec<FeatT> & feature_vec,
                                    boost::scoped_array<RegressionNode<FeatT, LabT, SplitT, SplFitterT> const *> * leaf_nodes_reached) const;
 
 
@@ -230,29 +221,12 @@ namespace garf {
 
         // Below here is the main public API for interacting with forests
         void clear();
+        void train(const feature_mtx<FeatT> & features, const label_mtx<LabT> & labels);
+        void predict(const feature_mtx<FeatT> & features,
+                     label_mtx<LabT> * const labels_out,
+                     label_mtx<LabT> * const variances_out = NULL,
+                     tree_idx_mtx * const leaf_indices_output = NULL) const;
 
-        template<typename Da, typename Db>
-        void train(const MatrixBase<Da> & features, const MatrixBase<Db> & labels);
-
-        template<typename Da, typename Db, typename Dc, typename Dd>
-        void predict(const MatrixBase<Da> & features,
-                     MatrixBase<Db> * const labels_out,
-                     MatrixBase<Dc> * const variances_out,
-                     MatrixBase<Dd> * const leaf_indices_output) const;
-
-        template<typename Da, typename Db, typename Dc>
-        void predict(const MatrixBase<Da> & features,
-                     MatrixBase<Db> * const labels_out,
-                     MatrixBase<Dc> * const variances_out) {
-            predict(features, labels_out, variances_out, static_cast<MatrixXd *>(NULL));
-        }
-
-        template<typename Da, typename Db>
-        void predict(const MatrixBase<Da> & features,
-                     MatrixBase<Db> * const labels_out) {
-            predict(features, labels_out,
-                    static_cast<MatrixXd *>(NULL), static_cast<MatrixXd *>(NULL));
-        }
 
         inline bool is_trained() const { return trained; }
 

@@ -1,6 +1,6 @@
 CXX=clang++
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra -std=c++0x -stdlib=libc++ -ferror-limit=3
+CXXFLAGS += -O3 -g -Wall -Wextra -std=c++0x -stdlib=libc++ -ferror-limit=3 
 
 
 # Eigen

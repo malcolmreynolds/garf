@@ -3,19 +3,18 @@
 namespace garf {
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    template<typename Da, typename Db, typename Dc>
-    void RegressionTree<FeatT, LabT, SplitT, SplFitterT>::train(const MatrixBase<Da> & features,
-                                                   const MatrixBase<Db> & labels,
-                                                   const MatrixBase<Dc> & data_indices,
-                                                   const TreeOptions & tree_opts,
-                                                   SplFitterT<FeatT, LabT> * fitter) {
+    void RegressionTree<FeatT, LabT, SplitT, SplFitterT>::train(const feature_mtx<FeatT> & features,
+                                                                const label_mtx<LabT> & labels,
+                                                                const data_indices_vec & data_indices,
+                                                                const TreeOptions & tree_opts,
+                                                                SplFitterT<FeatT, LabT> * fitter) {
         //LOG(INFO)
 #ifdef VERBOSE
         std::cout << "[t" << tree_id << "].train() data_indices = [" << data_indices.transpose() << "]" << std::endl;
 #endif
 
 
-        std::cout << "[t" << tree_id << "].train() #0, 0: " << features.coeff(0, 0) << " @ " << &features.coeff(0, 0) << std::endl;
+        // std::cout << "[t" << tree_id << "].train() #0, 0: " << features.coeff(0, 0) << " @ " << &features.coeff(0, 0) << std::endl;
         // std::cout << "#0, 0: " << features.coeff(0, 0) << " @ " << &features.coeff(0, 0) << std::endl;
 
     
@@ -36,8 +35,7 @@ namespace garf {
     }
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    template<typename D>
-    const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & RegressionTree<FeatT, LabT, SplitT, SplFitterT>::evaluate(const MatrixBase<D> & fvec,
+    const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & RegressionTree<FeatT, LabT, SplitT, SplFitterT>::evaluate(const feature_vec<FeatT> & fvec,
                                                                                                                       const PredictOptions & predict_opts) const {
         depth_idx_t current_depth = 0;
 #ifdef VERBOSE

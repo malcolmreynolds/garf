@@ -22,21 +22,28 @@ namespace garf {
 
         std::mt19937_64 rng; // Mersenne twister
 
+        // ref to the mutex which we need to lock to print anything
+        tbb::mutex & print_mutex;
+
 
         SplFitter(const SplitOptions & _split_opts,
                   datapoint_idx_t _total_num_datapoints,
                   feat_idx_t _feature_dimensionality,
                   label_idx_t _label_dims,
+                  tbb::mutex & _print_mutex,
                   uint64_t seed_value=42)
             : split_opts(_split_opts),
               label_dims(_label_dims), 
               total_num_datapoints(_total_num_datapoints),
               feature_dimensionality(_feature_dimensionality),
               left_child_dist(_label_dims),
-              right_child_dist(_label_dims) {
+              right_child_dist(_label_dims),
+              print_mutex(_print_mutex) {
 
             // Seed the RNG
+            print_mutex.lock();
             std::cout << "seeding RNG with " << seed_value << std::endl;
+            print_mutex.unlock();
             rng.seed(seed_value);
         };
     };
@@ -106,8 +113,9 @@ namespace garf {
                              datapoint_idx_t _total_num_datapoints,
                              feat_idx_t _feature_dimensionality,
                              label_idx_t _label_dims,
+                             tbb::mutex & _print_mutex,
                              uint64_t seed_value)
-            : SplFitter<FeatT, LabT>(_split_opts, _total_num_datapoints, _feature_dimensionality, _label_dims, seed_value),
+            : SplFitter<FeatT, LabT>(_split_opts, _total_num_datapoints, _feature_dimensionality, _label_dims, _print_mutex, seed_value),
               feat_idx_dist(0, _feature_dimensionality-1),
               feature_indices_to_evaluate(_split_opts.num_splits_to_try),
               candidate_feature_values(_total_num_datapoints, _split_opts.num_splits_to_try),

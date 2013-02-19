@@ -5,7 +5,7 @@
 #include <Eigen/Core>
 // #include <Eigen/VectorwiseOp.h>
 
-using namespace Eigen;
+// using namespace Eigen;
 
 // using Eigen::Matrix;
 // using Eigen::RowVectorXd;

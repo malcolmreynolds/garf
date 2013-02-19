@@ -3,14 +3,13 @@
 namespace garf {
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    template<typename Da, typename Db, typename Dc>
     void RegressionNode<FeatT, LabT, SplitT, SplFitterT>::train(const RegressionTree<FeatT, LabT, SplitT, SplFitterT> & tree,
-                                                   const MatrixBase<Da> & features,
-                                                   const MatrixBase<Db> & labels,
-                                                   const MatrixBase<Dc> & data_indices,
-                                                   const TreeOptions & tree_opts,
-                                                   SplFitterT<FeatT, LabT> * fitter,
-                                                   const MultiDimGaussianX<LabT> * const _dist) {
+                                                                const feature_mtx<FeatT> & features,
+                                                                const label_mtx<LabT> & labels,
+                                                                const data_indices_vec & data_indices,
+                                                                const TreeOptions & tree_opts,
+                                                                SplFitterT<FeatT, LabT> * fitter,
+                                                                const MultiDimGaussianX<LabT> * const _dist) {
         // Store the indices which pass through this node - this should do a copy. I hope!
         training_data_indices = data_indices;
         //LOG(INFO)
@@ -38,7 +37,7 @@ namespace garf {
         std::cout << "[t" << tree.tree_id << ":" << node_id << "] dist = " << dist << std::endl;
 #endif
 
-        std::cout << "[t" << tree.tree_id << ":" << node_id << "] #0, 0: " << features.coeff(0, 0) << " @ " << &features.coeff(0, 0) << std::endl;
+        // std::cout << "[t" << tree.tree_id << ":" << node_id << "] #0, 0: " << features.coeff(0, 0) << " @ " << &features.coeff(0, 0) << std::endl;
 
         // Check whether to stop growing now. NB: even if this returns false, we might
         // still stop growing if we cannot find a decent split (see below)

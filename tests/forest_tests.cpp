@@ -7,8 +7,9 @@
 
 // #define EIGEN_NO_DEBUG
 
+#define EIGEN_DONT_PARALLELIZE 
 #include <Eigen/Dense>
-#include <Eigen/Core>
+// #include <Eigen/Core>
 
 using Eigen::Matrix;
 using Eigen::RowVectorXd;
@@ -164,59 +165,59 @@ TEST(ForestTest, MDGTest) {
     MatrixXd blah(4,4);
     blah.setRandom();
 
-    mdg.test_func(blah);
+    // mdg.test_func(blah);
 
     EXPECT_TRUE(true);
 }
 
-// TEST(ForestTest, RegTest2) {
-//     forest_ax_align forest;
-//     forest.forest_options.max_num_trees = 10;
-//     forest.tree_options.max_depth = 6;
-//     forest.tree_options.min_sample_count = 2;
+TEST(ForestTest, RegTest2) {
+    forest_ax_align forest;
+    forest.forest_options.max_num_trees = 10;
+    forest.tree_options.max_depth = 6;
+    forest.tree_options.min_sample_count = 2;
 
-//     uint64_t num_train_datapoints = 1000;
-//     uint64_t num_test_datapoints = 100;
-//     uint64_t data_dims = 1;
-//     uint64_t label_dims = 1;
-//     double data_scaler = 2.0;
-//     double noise_variance = 0.1;
-//     double answer_tolerance = 1.05;
+    uint64_t num_train_datapoints = 1000;
+    uint64_t num_test_datapoints = 100;
+    uint64_t data_dims = 1;
+    uint64_t label_dims = 1;
+    double data_scaler = 2.0;
+    double noise_variance = 0.1;
+    double answer_tolerance = 1.05;
 
-//     // 1D data, 1D labels
-//     test_forest_with_data(forest, make_1d_labels_from_1d_data_abs,
-//                           num_train_datapoints, num_test_datapoints,
-//                           data_dims, label_dims, data_scaler,
-//                           noise_variance, answer_tolerance);
-// }
+    // 1D data, 1D labels
+    test_forest_with_data(forest, make_1d_labels_from_1d_data_abs,
+                          num_train_datapoints, num_test_datapoints,
+                          data_dims, label_dims, data_scaler,
+                          noise_variance, answer_tolerance);
+}
 
-// TEST(ForestTest, Serialize) {
-//     typedef double feat_t;
-//     typedef double label_t;
+TEST(ForestTest, Serialize) {
+    typedef double feat_t;
+    typedef double label_t;
 
-//     uint64_t data_elements = 1000;
-//     uint64_t data_dims = 2;
-//     uint64_t label_dims = 1;
-//     garf::feature_mtx<feat_t> data(data_elements, data_dims);
-//     data.setRandom();
+    uint64_t data_elements = 1000;
+    uint64_t data_dims = 2;
+    uint64_t label_dims = 1;
+    garf::feature_mtx<feat_t> data(data_elements, data_dims);
+    data.setRandom();
 
-//     garf::label_mtx<label_t> labels(data_elements, label_dims);
-//     make_1d_labels_from_2d_data_squared_diff(data, labels);
-//     labels.setRandom();
+    garf::label_mtx<label_t> labels(data_elements, label_dims);
+    make_1d_labels_from_2d_data_squared_diff(data, labels);
+    labels.setRandom();
 
-//     forest_ax_align forest1;
-//     forest1.forest_options.max_num_trees = 10;
-//     forest1.tree_options.max_depth = 6;
-//     forest1.tree_options.min_sample_count = 2;
-//     forest_ax_align forest2;
+    forest_ax_align forest1;
+    forest1.forest_options.max_num_trees = 10;
+    forest1.tree_options.max_depth = 6;
+    forest1.tree_options.min_sample_count = 2;
+    forest_ax_align forest2;
 
 
-//     forest1.train(data, labels);
-//     forest1.save_forest("test_serialize.forest");
-//     forest2.load_forest("test_serialize.forest");
+    forest1.train(data, labels);
+    forest1.save_forest("test_serialize.forest");
+    forest2.load_forest("test_serialize.forest");
 
-//     assert_forest_predictions_match<feat_t, label_t, forest_ax_align>(forest1, forest2, data);
-// }
+    assert_forest_predictions_match<feat_t, label_t, forest_ax_align>(forest1, forest2, data);
+}
 
 GTEST_API_ int main(int argc, char **argv) {
     // Print everything, including INFO and WARNING

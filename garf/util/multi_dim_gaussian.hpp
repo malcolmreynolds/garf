@@ -37,10 +37,9 @@ namespace garf {
             cov.setZero();
         }
 
-        template<typename Da, typename Db>
         inline MultiDimGaussianX(eigen_idx_t _dimensions,
-                                 MatrixBase<Da> _mean,
-                                 MatrixBase<Db> _cov) : dimensions(_dimensions) {
+                                 vec<T> _mean,
+                                 mtx<T> _cov) : dimensions(_dimensions) {
             // Check size of the provided mean and cov..
             // This complicated test allows to have the mean vector either way round
             if (!(((_mean.rows() == dimensions) && (_mean.cols() == 1)) ||
@@ -57,23 +56,21 @@ namespace garf {
             cov = _cov;
         }
 
-        template<typename D>
-        inline void check_data_dimensionality(const MatrixBase<D> & input_data) const {
+        inline void check_data_dimensionality(const mtx <T> & input_data) const {
             eigen_idx_t input_data_dimensionality = input_data.cols();
             if (input_data_dimensionality != dimensions) {
                 throw std::invalid_argument("input data dimensionality doesn't match in fit_params");   
             }
         }
 
-        template<typename D>
-        inline void test_func(const MatrixBase<D> & test) const {
-            eigen_idx_t rows, cols;
-            rows = test.rows();
-            cols = test.cols();
+        // inline void test_func(const MatrixBase<D> & test) const {
+        //     eigen_idx_t rows, cols;
+        //     rows = test.rows();
+        //     cols = test.cols();
 
-            std::cout << "in test_func, test has shape " << rows << "x" << cols << std::endl
-                << test << std::endl;
-        }
+        //     std::cout << "in test_func, test has shape " << rows << "x" << cols << std::endl
+        //         << test << std::endl;
+        // }
 
         /**
             Fit mean and covariance to some dataset. Note this has to be a dynamic
@@ -81,8 +78,7 @@ namespace garf {
             should be (same as our dimensionality) we don't know the other one, and we
             can't template the entire program on every possible dataset size
          */
-        template<typename D>
-        inline void fit_params(const MatrixBase<D> & input_data) {
+        inline void fit_params(const mtx<T> & input_data) {
             check_data_dimensionality(input_data);
             eigen_idx_t num_input_datapoints = input_data.rows();
 
@@ -127,8 +123,7 @@ namespace garf {
 
         /* As above, but allows us to also pass a vector of indices indicating only
            certain rows of the data matrix should be considered */
-        template<typename Da, typename Db>
-        inline void fit_params(const MatrixBase<Da> & input_data, const MatrixBase<Db> & valid_indices) {
+        inline void fit_params(const mtx<T> & input_data, const data_indices_vec & valid_indices) {
             check_data_dimensionality(input_data);
             eigen_idx_t num_input_datapoints = valid_indices.size();
 
@@ -164,13 +159,9 @@ namespace garf {
             }
         }
 
-
         /* As above again, but if only some of the indices in valid_indices are valid. For memory efficiency,
            sometimes it is better to allocate a vector that is too big, and then only use the first few elements) */
-        template<typename Da, typename Db>
-        inline void fit_params(const MatrixBase<Da> & input_data,
-                               const MatrixBase<Db> & valid_indices,
-                               const eigen_idx_t num_input_datapoints) {
+        inline void fit_params(const mtx<T> & input_data, const data_indices_vec & valid_indices, const eigen_idx_t num_input_datapoints) {
             check_data_dimensionality(input_data);
 
             if (num_input_datapoints == 0) {
@@ -209,8 +200,7 @@ namespace garf {
             }
         }
 
-        template<typename D>
-        inline void fit_params_inaccurate(const MatrixBase<D> & input_data) {
+        inline void fit_params_inaccurate(const mtx<T> & input_data) {
             check_data_dimensionality(input_data);
             datapoint_idx_t num_input_datapoints = input_data.rows();
 
