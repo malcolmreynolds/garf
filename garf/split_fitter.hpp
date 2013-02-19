@@ -65,7 +65,7 @@ namespace garf {
         feature_mtx<FeatT> split_thresholds;
 
         // This is used to generate the thresholds we use for splitting
-        std::uniform_real_distribution<FeatT> thresh_dist; 
+        // std::uniform_real_distribution<FeatT> thresh_dist; 
 
         // Temporary vector to store which direction things go in (to calculate
         // information gains etc) - 
@@ -97,6 +97,8 @@ namespace garf {
 
         // Pick some thresholds for each candidate feature, with min and max values
         void generate_split_thresholds();
+
+        void check_split_thresholds();
 
     public:
 

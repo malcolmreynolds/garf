@@ -17,6 +17,7 @@ using Eigen::VectorXd;
 using Eigen::Matrix3d;
 using Eigen::MatrixXd;
 
+// #define VERBOSE
 #define GARF_SERIALIZE_ENABLE
 #define GARF_PARALLELIZE_TBB
 
@@ -223,5 +224,6 @@ GTEST_API_ int main(int argc, char **argv) {
     // FLAGS_stderrthreshold = 0;
     // google::InitGoogleLogging(argv[0]);
 	testing::InitGoogleTest(&argc, argv);
+    Eigen::initParallel();
 	return RUN_ALL_TESTS();
 }

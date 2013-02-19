@@ -127,8 +127,8 @@ namespace garf {
 
         /* As above, but allows us to also pass a vector of indices indicating only
            certain rows of the data matrix should be considered */
-        
-        inline void fit_params(const mtx<T> & input_data, const data_indices_vec & valid_indices) {
+        template<typename Da, typename Db>
+        inline void fit_params(const MatrixBase<Da> & input_data, const MatrixBase<Db> & valid_indices) {
             check_data_dimensionality(input_data);
             eigen_idx_t num_input_datapoints = valid_indices.size();
 
@@ -167,8 +167,15 @@ namespace garf {
 
         /* As above again, but if only some of the indices in valid_indices are valid. For memory efficiency,
            sometimes it is better to allocate a vector that is too big, and then only use the first few elements) */
-        inline void fit_params(const mtx<T> & input_data, const data_indices_vec & valid_indices, const eigen_idx_t num_input_datapoints) {
+        template<typename Da, typename Db>
+        inline void fit_params(const MatrixBase<Da> & input_data,
+                               const MatrixBase<Db> & valid_indices,
+                               const eigen_idx_t num_input_datapoints) {
             check_data_dimensionality(input_data);
+
+            if (num_input_datapoints == 0) {
+                throw std::invalid_argument("num_input_datapoints cannot be zero");
+            }
 
             MatrixXd mean_k_minus_1(dimensions, 1);
             initialise_params();
@@ -202,8 +209,8 @@ namespace garf {
             }
         }
 
-
-        inline void fit_params_inaccurate(const mtx<T> & input_data) {
+        template<typename D>
+        inline void fit_params_inaccurate(const MatrixBase<D> & input_data) {
             check_data_dimensionality(input_data);
             datapoint_idx_t num_input_datapoints = input_data.rows();
 

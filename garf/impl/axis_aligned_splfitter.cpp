@@ -50,7 +50,8 @@ namespace garf {
 
         for (datapoint_idx_t data_idx = 0; data_idx < num_in_parent; data_idx++) {
             for (feat_idx_t feat_idx = 0; feat_idx < num_splits_to_try; feat_idx++) {
-                candidate_feature_values(data_idx, feat_idx) = features(parent_data_indices(data_idx), feature_indices_to_evaluate(feat_idx));
+                candidate_feature_values(data_idx, feat_idx) = features(parent_data_indices(data_idx),
+                                                                        feature_indices_to_evaluate(feat_idx));
             }
         }
     }
@@ -70,9 +71,29 @@ namespace garf {
 
         for (feat_idx_t feat_idx = 0; feat_idx < num_splits_to_try; feat_idx++) {
             // FIXME: work out how to reset the parameters of a given distribution! This sucks!
-            std::uniform_real_distribution<FeatT>(min_feature_values(feat_idx), max_feature_values(feat_idx));
+            std::uniform_real_distribution<FeatT> thresh_dist(min_feature_values(feat_idx), max_feature_values(feat_idx));
+
             for (split_idx_t split_idx = 0; split_idx < threshes_per_split; split_idx++) {
                 split_thresholds(feat_idx, split_idx) = thresh_dist(this->rng);
+            }
+        }
+    }
+
+    template<typename FeatT, typename LabT>
+    void AxisAlignedSplFitter<FeatT, LabT>::check_split_thresholds() {
+        const feat_idx_t num_splits_to_try = this->split_opts.num_splits_to_try;
+        const split_idx_t threshes_per_split = this->split_opts.threshes_per_split;
+
+        for (feat_idx_t feat_idx = 0; feat_idx < num_splits_to_try; feat_idx++) {
+            for (split_idx_t split_idx = 0; split_idx < threshes_per_split; split_idx++){
+                FeatT thresh = split_thresholds(feat_idx, split_idx);
+                if (thresh < min_feature_values(feat_idx) ||
+                    thresh > max_feature_values(feat_idx)) {
+                    std::cout << "feature idx " << feat_idx << " split idx " << split_idx << " = " << thresh 
+                        << " which is outside range [" << min_feature_values(feat_idx)
+                        << ", " << max_feature_values(feat_idx) << ")" << std::endl;
+                    // throw std::logic_error("")
+                }
             }
         }
     }
@@ -116,6 +137,8 @@ namespace garf {
         std::cout << "thresholds = " << std::endl << split_thresholds << std::endl;
 #endif
 
+        check_split_thresholds();
+
         // Store best information gain so far in here
         best_inf_gain = -std::numeric_limits<LabT>::infinity();
         good_split_found = false;
@@ -131,7 +154,8 @@ namespace garf {
                                       &num_going_left, &num_going_right);
 #ifdef VERBOSE                
                 std::cout << "split #" << split_idx << " thresh #" << thresh_idx << " = " << split_thresholds(split_idx, thresh_idx);
-                std::cout << ", candidate split directions = ";
+                std::cout << ", feature range is [" << min_feature_values(split_idx) << "," << max_feature_values(split_idx);
+                std::cout << "], candidate split directions = ";
                 for (datapoint_idx_t i = 0; i < num_in_parent; i++) {
                     if (candidate_split_directions(i) == LEFT) {
                         std::cout << "L";
@@ -142,6 +166,22 @@ namespace garf {
                 std::cout << " " << num_going_left << " going left: [" << samples_going_left.head(num_going_left).transpose() << "] : "
                     << num_going_right << " going right: [" << samples_going_right.head(num_going_right).transpose() << "]" << std::endl;
 #endif
+                if ((num_going_left == 0) || (num_going_right == 0)) {
+                    // this is a bit weird - figure out why it happened
+                    std::cout << "split #" << split_idx << " thresh #" << thresh_idx << " = " << split_thresholds(split_idx, thresh_idx);
+                    std::cout << ", feature range is [" << min_feature_values(split_idx) << "," << max_feature_values(split_idx);
+                    std::cout << "], candidate split directions = ";
+                    for (datapoint_idx_t i = 0; i < num_in_parent; i++) {
+                        if (candidate_split_directions(i) == LEFT) {
+                            std::cout << "L";
+                        } else {
+                            std::cout << "R";
+                        }
+                    }
+                    std::cout << " " << num_going_left << " going left: [" << samples_going_left.head(num_going_left).transpose() << "] : "
+                        << num_going_right << " going right: [" << samples_going_right.head(num_going_right).transpose() << "]" << std::endl;
+
+                }
 
                 // Now work out the information gain. First fit gaussians
                 this->left_child_dist.fit_params(all_labels, samples_going_left, num_going_left);

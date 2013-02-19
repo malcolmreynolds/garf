@@ -3,9 +3,10 @@
 namespace garf {
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    void RegressionTree<FeatT, LabT, SplitT, SplFitterT>::train(const feature_mtx<FeatT> & features,
-                                                   const label_mtx<LabT> & labels,
-                                                   const data_indices_vec & data_indices,
+    template<typename Da, typename Db, typename Dc>
+    void RegressionTree<FeatT, LabT, SplitT, SplFitterT>::train(const MatrixBase<Da> & features,
+                                                   const MatrixBase<Db> & labels,
+                                                   const MatrixBase<Dc> & data_indices,
                                                    const TreeOptions & tree_opts,
                                                    SplFitterT<FeatT, LabT> * fitter) {
         //LOG(INFO)
@@ -30,7 +31,8 @@ namespace garf {
     }
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & RegressionTree<FeatT, LabT, SplitT, SplFitterT>::evaluate(const feature_vec<FeatT> & fvec,
+    template<typename D>
+    const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & RegressionTree<FeatT, LabT, SplitT, SplFitterT>::evaluate(const MatrixBase<D> & fvec,
                                                                                                                       const PredictOptions & predict_opts) const {
         depth_idx_t current_depth = 0;
 #ifdef VERBOSE

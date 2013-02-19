@@ -3,10 +3,11 @@
 namespace garf {
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    template<typename Da, typename Db, typename Dc>
     void RegressionNode<FeatT, LabT, SplitT, SplFitterT>::train(const RegressionTree<FeatT, LabT, SplitT, SplFitterT> & tree,
-                                                   const feature_mtx<FeatT> & features,
-                                                   const label_mtx<LabT> & labels,
-                                                   const data_indices_vec & data_indices,
+                                                   const MatrixBase<Da> & features,
+                                                   const MatrixBase<Db> & labels,
+                                                   const MatrixBase<Dc> & data_indices,
                                                    const TreeOptions & tree_opts,
                                                    SplFitterT<FeatT, LabT> * fitter,
                                                    const MultiDimGaussianX<LabT> * const _dist) {
@@ -50,6 +51,7 @@ namespace garf {
         data_indices_vec left_child_indices;
 
         // bool good_split_found = true;
+        // std::cout << "[t" << tree.tree_id << ":" << node_id << "] choose_split_parameters" << std::endl;
         bool good_split_found = fitter->choose_split_parameters(features, labels, data_indices, dist,
                                                                 &split, &left_child_indices, &right_child_indices);
 

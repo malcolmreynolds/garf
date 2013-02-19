@@ -10,7 +10,9 @@ namespace garf {
 // // using a temporary instead of returning one from a function avoids any issues with copies
 // FullExpressionAccumulator(std::cout) << val1 << val2 << val3;
 
-    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    template<typename FeatT, typename LabT,
+             template<typename> class SplitT, template<typename, typename> class SplFitterT,
+             typename Da, typename Db>
     class concurrent_tree_trainer {
         boost::shared_array<RegressionTree<FeatT, LabT, SplitT, SplFitterT> > & trees;
         const feature_mtx<FeatT> & all_features;
@@ -60,8 +62,8 @@ namespace garf {
         }
 
         concurrent_tree_trainer(boost::shared_array<RegressionTree<FeatT, LabT, SplitT, SplFitterT> > & _trees,
-                                const feature_mtx<FeatT> & _all_features,
-                                const label_mtx<LabT> & _all_labels,
+                                const MatrixBase<Da> & _all_features,
+                                const MatrixBase<Db> & _all_labels,
                                 const RegressionForest<FeatT, LabT, SplitT, SplFitterT> & _forest)
             : trees(_trees), all_features(_all_features), all_labels(_all_labels), forest(_forest) {
         }
@@ -72,7 +74,9 @@ namespace garf {
 
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::train(const feature_mtx<FeatT> & features, const label_mtx<LabT> & labels) {
+    template<typename Da, typename Db>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::train(const MatrixBase<Da> & features,
+                                                                  const MatrixBase<Db> & labels) {
         if (trained) {
             throw std::invalid_argument("forest is already trained");
         }
@@ -102,7 +106,7 @@ namespace garf {
         // FIXME! Work out how to actually work out the number of
         // threads TBB will use, rather than guess
         parallel_for(blocked_range<tree_idx_t>(0, forest_options.max_num_trees, 1),
-                     concurrent_tree_trainer<FeatT, LabT, SplitT, SplFitterT>(trees, features, labels, *this));
+                     concurrent_tree_trainer<FeatT, LabT, SplitT, SplFitterT, Da, Db>(trees, features, labels, *this));
 #else
         // Create a RNG which we will need for picking the bagging indices, plus the uniform distribution
         std::mt19937_64 rng; // Mersenne twister
@@ -145,8 +149,9 @@ namespace garf {
     // Given a single feature vector, send it down each tree in turn and fill the given scoped 
     // array with pointers to which node it lands at in each
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::predict_single_vector(const feature_vec<FeatT> & feature_vec,
-                                                                     boost::scoped_array<RegressionNode<FeatT, LabT, SplitT, SplFitterT> const *> * leaf_nodes_reached) const {
+    template<typename D>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::predict_single_vector(const MatrixBase<D> & feature_vec,
+                                                                                  boost::scoped_array<RegressionNode<FeatT, LabT, SplitT, SplFitterT> const *> * leaf_nodes_reached) const {
         for (tree_idx_t t = 0; t < forest_stats.num_trees; t++) {
             (*leaf_nodes_reached)[t] = &trees[t].evaluate(feature_vec, predict_options);
         }
@@ -154,8 +159,9 @@ namespace garf {
 
     // Checks dimensions of labels_out matrix. Throws an error if it is not present or wrong shape.
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_label_output_matrix(label_mtx<LabT> * const labels_out,
-                                                                         feat_idx_t num_datapoints_to_predict) const {
+    template<typename D>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_label_output_matrix(MatrixBase<D> * const labels_out,
+                                                                                      feat_idx_t num_datapoints_to_predict) const {
         if (labels_out == NULL) {
             throw std::invalid_argument("predict(): label ouput vector must be supplied!");
         } else if (labels_out->cols() != forest_stats.label_dimensions) {
@@ -169,8 +175,9 @@ namespace garf {
     // Returns false if the variances_out matrix is not present (ie we shouldn't bother computing variance),
     // true if it is present and the right shape. Throws a descriptive exception if it is present but the wrong shape
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    bool RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_variance_output_matrix(label_mtx<LabT> * const variances_out,
-                                                                            feat_idx_t num_datapoints_to_predict) const {
+    template<typename D>
+    bool RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_variance_output_matrix(MatrixBase<D> * const variances_out,
+                                                                                         feat_idx_t num_datapoints_to_predict) const {
         if (variances_out == NULL) {
             return false;  // caller of predict() hasn't supplied a vector output, so don't compute variances
         } else if (variances_out->cols() != forest_stats.label_dimensions) {
@@ -183,8 +190,9 @@ namespace garf {
 
     // As above, returns true if the leaf index output matrix is the right shape
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    bool RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_leaf_index_output_matrix(tree_idx_mtx * const leaf_indices_out,
-                                                                              feat_idx_t num_datapoints_to_predict) const {
+    template<typename D>
+    bool RegressionForest<FeatT, LabT, SplitT, SplFitterT>::check_leaf_index_output_matrix(MatrixBase<D> * const leaf_indices_out,
+                                                                                           feat_idx_t num_datapoints_to_predict) const {
         if (leaf_indices_out == NULL) {
             return false; // we don't need to compute / return leaf indices
         } else if (leaf_indices_out->cols() != forest_stats.num_trees) {
@@ -196,10 +204,11 @@ namespace garf {
     }
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::predict(const feature_mtx<FeatT> & features,
-                                                                    label_mtx<LabT> * const labels_out,
-                                                                    label_mtx<LabT> * const variances_out,
-                                                                    tree_idx_mtx * const leaf_indices_out) const {
+    template<typename Da, typename Db, typename Dc, typename Dd>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::predict(const MatrixBase<Da> & features,
+                                                                    MatrixBase<Db> * const labels_out,
+                                                                    MatrixBase<Dc> * const variances_out,
+                                                                    MatrixBase<Dd> * const leaf_indices_out) const {
         if (!trained) {
             throw std::invalid_argument("cannot predict, forest not trained yet");
         }
