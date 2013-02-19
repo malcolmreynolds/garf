@@ -93,6 +93,12 @@ namespace garf {
             << data_dimensions << " dimensional datapoints with "
             << label_dimensions << " dimensional labels" << std::endl;
 
+        // for (datapoint_idx_t d = 0; d < num_datapoints; d++) {
+        //     std::cout << d << " " << features.row(d) << std::endl;
+        // }
+
+        std::cout << "#0, 0: " << features.coeff(0, 0) << " @ " << &features.coeff(0, 0) << std::endl;
+
         forest_stats.label_dimensions = label_dimensions;
         forest_stats.data_dimensions = data_dimensions;
         forest_stats.num_training_datapoints = num_datapoints;
@@ -105,7 +111,7 @@ namespace garf {
         std::cout << "training using TBB" << std::endl;
         // FIXME! Work out how to actually work out the number of
         // threads TBB will use, rather than guess
-        parallel_for(blocked_range<tree_idx_t>(0, forest_options.max_num_trees, 1),
+        parallel_for(blocked_range<tree_idx_t>(0, forest_options.max_num_trees, forest_options.max_num_trees),
                      concurrent_tree_trainer<FeatT, LabT, SplitT, SplFitterT, Da, Db>(trees, features, labels, *this));
 #else
         // Create a RNG which we will need for picking the bagging indices, plus the uniform distribution

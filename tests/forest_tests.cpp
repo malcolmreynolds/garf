@@ -26,7 +26,6 @@ typedef garf::RegressionForest<double, double, garf::AxisAlignedSplt, garf::Axis
 
 
 const double tol = 0.00001;
-
 void make_1d_labels_from_2d_data_squared_diff(const MatrixXd & features, MatrixXd & labels) {
     labels.col(0) = features.col(0).cwiseProduct(features.col(0)) - 
                     0.5 * features.col(1).cwiseProduct(features.col(1));
@@ -224,6 +223,8 @@ GTEST_API_ int main(int argc, char **argv) {
     // FLAGS_stderrthreshold = 0;
     // google::InitGoogleLogging(argv[0]);
 	testing::InitGoogleTest(&argc, argv);
+// #ifdef GARF_PARALLELIZE_TBB
     Eigen::initParallel();
+// #endif
 	return RUN_ALL_TESTS();
 }

@@ -13,6 +13,11 @@ namespace garf {
 #ifdef VERBOSE
         std::cout << "[t" << tree_id << "].train() data_indices = [" << data_indices.transpose() << "]" << std::endl;
 #endif
+
+
+        std::cout << "[t" << tree_id << "].train() #0, 0: " << features.coeff(0, 0) << " @ " << &features.coeff(0, 0) << std::endl;
+        // std::cout << "#0, 0: " << features.coeff(0, 0) << " @ " << &features.coeff(0, 0) << std::endl;
+
     
         // constructor argument to RegressionNode is node id & link to parent,
         // plus label dimensionality (need this in the constructor so

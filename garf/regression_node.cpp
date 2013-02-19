@@ -38,6 +38,8 @@ namespace garf {
         std::cout << "[t" << tree.tree_id << ":" << node_id << "] dist = " << dist << std::endl;
 #endif
 
+        std::cout << "[t" << tree.tree_id << ":" << node_id << "] #0, 0: " << features.coeff(0, 0) << " @ " << &features.coeff(0, 0) << std::endl;
+
         // Check whether to stop growing now. NB: even if this returns false, we might
         // still stop growing if we cannot find a decent split (see below)
         if (stopping_conditions_reached(tree_opts)) {

@@ -167,6 +167,17 @@ namespace garf {
                     << num_going_right << " going right: [" << samples_going_right.head(num_going_right).transpose() << "]" << std::endl;
 #endif
                 if ((num_going_left == 0) || (num_going_right == 0)) {
+
+                    check_split_thresholds();
+
+                    std::cout << "feature values = " << candidate_feature_values.topRows(num_in_parent) << std::endl;
+
+                    for (datapoint_idx_t i = 0; i < num_in_parent; i++) {
+                        std::cout << i << ":" << parent_data_indices(i) << ": "
+                            << all_features.row(parent_data_indices(i)) << std::endl;
+                    }
+
+
                     // this is a bit weird - figure out why it happened
                     std::cout << "split #" << split_idx << " thresh #" << thresh_idx << " = " << split_thresholds(split_idx, thresh_idx);
                     std::cout << ", feature range is [" << min_feature_values(split_idx) << "," << max_feature_values(split_idx);
