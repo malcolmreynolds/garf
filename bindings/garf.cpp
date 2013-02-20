@@ -70,7 +70,7 @@ BOOST_PYTHON_MODULE(_garf) {
     class_<RegressionForest<F, L, S, SF> >("RegressionForest" FN LN SN) \
         .add_property("trained", &RegressionForest<F, L, S, SF>::is_trained) \
         .add_property("stats", make_function(&RegressionForest<F, L, S, SF>::stats, \
-                      return_internal_reference<>())) \
+                                             return_internal_reference<>())) \
         .def("_train", &RegressionForest<F, L, S, SF>::py_train) \
         .def("_predict", &RegressionForest<F, L, S, SF>::py_predict_mean) \
         .def("_predict", &RegressionForest<F, L, S, SF>::py_predict_mean_var) \

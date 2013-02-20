@@ -83,6 +83,76 @@ namespace garf {
 
         return ret_val;
     }
+
+    template<typename T>
+    void copy_eigen_data_to_numpy(const feature_mtx<T> & eigen_in, PyObject * numpy_out) {
+        if (!PyArray_Check(numpy_out)) {
+            throw std::invalid_argument("supplied python object is not a Numpy array");
+        } else if (PyArray_NDIM(numpy_out) != 2) {
+            throw std::invalid_argument("supplied python object doesn't have 2 dimensions");
+        } else if (sizeof(T) != PyArray_DESCR(numpy_out)->elsize) {
+            // FIXME! I'm not really sure this is the best way to do this...
+            throw std::invalid_argument("numpy array elsize doesn't match the type we have templated this function on!");
+        }
+
+        eigen_idx_t rows, cols;
+        npy_intp * dims = PyArray_DIMS(numpy_out);
+        rows = dims[0];
+        cols = dims[1];
+
+        if ((eigen_in.rows() != rows) ||
+            (eigen_in.cols() != cols)) {
+            throw std::logic_error("supplied python object shape doesn't match eigen shape!");
+        }
+
+        for (eigen_idx_t i = 0; i < rows; i++) {
+            for (eigen_idx_t j = 0; j < cols; j++) {
+                *((T*)PyArray_GETPTR2(numpy_out, i, j)) = eigen_in(i, j);
+            }
+        }
+    }
+
+    // Send stuff back to 
+    template<typename T>
+    feature_mtx<T> * numpy_obj_to_eigen_copy(PyObject * numpy_array) {
+
+        if (!PyArray_Check(numpy_array)) {
+            throw std::invalid_argument("supplied python object is not a Numpy Array");
+        }
+
+        int num_dims = PyArray_NDIM(numpy_array);
+
+        if (num_dims > 2) {
+            throw std::invalid_argument("cannot convert an array with dimensions > 2");
+        } else if (num_dims == 0) {
+            throw std::invalid_argument("array has zero dimensions ?!?");
+        }
+
+        // This is safe because we know that the number of dimensions 
+        eigen_idx_t rows, cols;
+        npy_intp * dims = PyArray_DIMS(numpy_array);
+        rows = dims[0];
+        if (num_dims == 1) {
+            cols = 1; // do a column vector by default
+        } else {
+            cols = dims[1];
+        }
+
+        if (sizeof(T) != PyArray_DESCR(numpy_array)->elsize) {
+            // FIXME! I'm not really sure this is the best way to do this...
+            throw std::invalid_argument("numpy array elsize doesn't match the type we have templated this function on!");
+        }
+
+        feature_mtx<T> * ret_val = new feature_mtx<T>(rows, cols);
+
+        for (eigen_idx_t i = 0; i < rows; i++) {
+            for (eigen_idx_t j = 0; j < cols; j++) {
+                (*ret_val)(i, j) = *((T*)PyArray_GETPTR2(numpy_array, i, j));
+            }
+        }
+
+        return ret_val;        
+    }
 }
 
 #endif

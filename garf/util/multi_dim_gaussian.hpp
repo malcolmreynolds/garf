@@ -84,7 +84,7 @@ namespace garf {
 
             // temporary for the efficient / stable computation:
             // http://www.johndcook.com/standard_deviation.html 
-            MatrixXd mean_k_minus_1(dimensions, 1);
+            vec<T> mean_k_minus_1(dimensions, 1);
             initialise_params();
 
             mean = input_data.row(0);
@@ -127,7 +127,7 @@ namespace garf {
             check_data_dimensionality(input_data);
             eigen_idx_t num_input_datapoints = valid_indices.size();
 
-            MatrixXd mean_k_minus_1(dimensions, 1);
+            vec<T> mean_k_minus_1(dimensions, 1);
             initialise_params();
 
             mean = input_data.row(valid_indices(0));
@@ -168,7 +168,7 @@ namespace garf {
                 throw std::invalid_argument("num_input_datapoints cannot be zero");
             }
 
-            MatrixXd mean_k_minus_1(dimensions, 1);
+            vec<T> mean_k_minus_1(dimensions, 1);
             initialise_params();
 
             mean = input_data.row(valid_indices(0));
@@ -215,7 +215,7 @@ namespace garf {
 
 
             for (eigen_idx_t i = 0; i < num_input_datapoints; i++) {
-                const RowVectorXd data_point = input_data.row(i);
+                const vec<T> data_point = input_data.row(i);
                 for (eigen_idx_t d1 = 0; d1 < dimensions; d1++) {
                     for (eigen_idx_t d2 = 0; d2 < dimensions; d2++) {
                         cov(d1, d2) += (data_point(d1) - mean(d1)) * (data_point(d2) - mean(d2));

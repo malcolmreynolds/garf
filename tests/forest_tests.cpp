@@ -146,7 +146,7 @@ TEST(ForestTest, RegTest1) {
 
     uint64_t num_train_datapoints = 1000;
     uint64_t num_test_datapoints = 2;
-    uint64_t data_dims = 2;
+    uint64_t data_dims = 200;
     uint64_t label_dims = 1;
     double data_scaler = 2.0;
     double noise_variance = 0.1;

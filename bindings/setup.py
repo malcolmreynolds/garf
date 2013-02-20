@@ -24,7 +24,7 @@ setup(
         Extension("_garf",
             ["garf.cpp"],
             language="c++",
-            extra_compile_args=["-std=c++0x", "-stdlib=libc++"],
+            extra_compile_args=["-std=c++0x", "-stdlib=libc++", "-ferror-limit=3"],
             extra_link_args=["-stdlib=libc++"],
             include_dirs=include_dirs,
             library_dirs=library_dirs,

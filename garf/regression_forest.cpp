@@ -314,13 +314,13 @@ namespace garf {
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_train(PyObject * features_np,
                                                                      PyObject * labels_np) {
-        // Get Eigen::Maps for our Numpy inputs
-        boost::shared_ptr<const Eigen::Map<feature_mtx<FeatT> > > features(numpy_to_eigen_map<FeatT>(features_np));
+        // copy Numpy format into eigen format
+        boost::shared_ptr<const feature_mtx<FeatT> > features(numpy_obj_to_eigen_copy<FeatT>(features_np));
         std::cout << "after conversion into eigen:" << std::endl
             << "features.shape = (" << features->rows() << "," << features->cols()
             << "), contents = " << std::endl << *features << std::endl;
 
-        boost::shared_ptr<const Eigen::Map<label_mtx<LabT> > > labels(numpy_to_eigen_map<LabT>(labels_np));
+        boost::shared_ptr<const label_mtx<LabT> > labels(numpy_obj_to_eigen_copy<LabT>(labels_np));
         std::cout << "labels.shape = (" << labels->rows() << "," << labels->cols()
             << "), contents = " << std::endl << *labels << std::endl;
 
@@ -329,26 +329,38 @@ namespace garf {
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_predict_mean(PyObject * features_np,
-                                                                       PyObject * predict_mean_out_np) {
-        std::cout << "inside py_predict 2 arg" << std::endl;
-        boost::shared_ptr<const Eigen::Map<feature_mtx<FeatT> > > features(numpy_to_eigen_map<FeatT>(features_np));
-        boost::shared_ptr<Eigen::Map<label_mtx<LabT> > > predict_mean_out(numpy_to_eigen_map<LabT>(predict_mean_out_np));
+                                                                            PyObject * predict_mean_out_np) {
 
-        // So apparently passing a `const Eigen::Map<feature_mtx<FeatT> >'' is okay to convert to a `const feature_mtx<FeatT> &'
-        // but somehow it is not okay to pass a Eigen::Map<label_mtx<LabT> >
+        // Convert features into python format
+        boost::shared_ptr<const feature_mtx<FeatT> > features(numpy_obj_to_eigen_copy<FeatT>(features_np));
+        eigen_idx_t num_datapoints = features->rows();
 
-        predict(*features, predict_mean_out.get(), NULL, NULL);
+        // Create a temporary eigen array to get the results, which we will copy to a numpy output matrix
+        label_mtx<LabT> predict_mean_out_eig(num_datapoints, forest_stats.label_dimensions);
+
+        // Make the call to the rest of the forest (this does proper error checking of the sizes, etc)
+        // then copy the answers into the numpy output variable
+        predict(*features, &predict_mean_out_eig);
+        copy_eigen_data_to_numpy<LabT>(predict_mean_out_eig, predict_mean_out_np);
     }
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_predict_mean_var(PyObject * features_np, 
                                                                        PyObject * predict_mean_out_np,
                                                                        PyObject * predict_var_out_np) const {
-        boost::shared_ptr<const Eigen::Map<feature_mtx<FeatT> > > features(numpy_to_eigen_map<FeatT>(features_np));
-        boost::shared_ptr<Eigen::Map<label_mtx<LabT> > > predict_mean_out(numpy_to_eigen_map<LabT>(predict_mean_out_np));
-        boost::shared_ptr<Eigen::Map<label_mtx<LabT> > > predict_var_out(numpy_to_eigen_map<LabT>(predict_var_out_np));
 
-        // predict(*features, const_cast<label_mtx<LabT> * const>(predict_mean_out.get()), predict_var_out.get(), NULL);
+        // Convert features into python format
+        boost::shared_ptr<const feature_mtx<FeatT> > features(numpy_obj_to_eigen_copy<FeatT>(features_np));
+        eigen_idx_t num_datapoints = features->rows();
+
+        // create temporary eigen arrays
+        label_mtx<LabT> predict_mean_out_eig(num_datapoints, forest_stats.label_dimensions);
+        label_mtx<LabT> predict_var_out_eig(num_datapoints, forest_stats.label_dimensions);
+
+        // do the prediction, copy data to numpy outputs
+        predict(*features, &predict_mean_out_eig, &predict_var_out_eig);
+        copy_eigen_data_to_numpy<LabT>(predict_mean_out_eig, predict_mean_out_np);
+        copy_eigen_data_to_numpy<LabT>(predict_var_out_eig, predict_var_out_np);
     }
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
@@ -356,17 +368,22 @@ namespace garf {
                                                                        PyObject * predict_mean_out_np,
                                                                        PyObject * predict_var_out_np,
                                                                        PyObject * leaf_indices_out_np) const {
-        boost::shared_ptr<const Eigen::Map<feature_mtx<FeatT> > > features(numpy_to_eigen_map<FeatT>(features_np));
-        boost::shared_ptr<Eigen::Map<label_mtx<LabT> > > predict_mean_out(numpy_to_eigen_map<LabT>(predict_mean_out_np));
-        boost::shared_ptr<Eigen::Map<label_mtx<LabT> > > predict_var_out(numpy_to_eigen_map<LabT>(predict_var_out_np));
-        boost::shared_ptr<Eigen::Map<tree_idx_mtx> > leaf_indices_out(numpy_to_eigen_map<tree_idx_t>(leaf_indices_out_np));
 
-        // predict(*features, predict_mean_out.get(), predict_var_out.get(), leaf_indices_out.get());
+
+        // Convert features into python format
+        boost::shared_ptr<const feature_mtx<FeatT> > features(numpy_obj_to_eigen_copy<FeatT>(features_np));
+        eigen_idx_t num_datapoints = features->rows();
+
+        // create temporary eigen arrays
+        label_mtx<LabT> predict_mean_out_eig(num_datapoints, forest_stats.label_dimensions);
+        label_mtx<LabT> predict_var_out_eig(num_datapoints, forest_stats.label_dimensions);
+        tree_idx_mtx leaf_indices_out_eig(num_datapoints, forest_stats.num_trees);
+
+        // do the prediction, copy data to numpy outputs
+        predict(*features, &predict_mean_out_eig, &predict_var_out_eig, &leaf_indices_out_eig);
+        copy_eigen_data_to_numpy<LabT>(predict_mean_out_eig, predict_mean_out_np);
+        copy_eigen_data_to_numpy<LabT>(predict_var_out_eig, predict_var_out_np);
+        copy_eigen_data_to_numpy<tree_idx_t>(leaf_indices_out_eig, leaf_indices_out_np);
     }
-
-
 #endif
-
-
-
 }
