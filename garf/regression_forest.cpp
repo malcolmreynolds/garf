@@ -88,7 +88,8 @@ namespace garf {
         std::cout << "Forest[" << this << "] got " << num_datapoints << "x "
             << data_dimensions << " dimensional datapoints with "
             << label_dimensions << " dimensional labels" << std::endl;
-
+        std::cout << "creating " << forest_options.max_num_trees << " trees of depth "
+            << tree_options.max_depth << " with min sample " << tree_options.min_sample_count << std::endl;
         // for (datapoint_idx_t d = 0; d < num_datapoints; d++) {
         //     std::cout << d << " " << features.row(d) << std::endl;
         // }
