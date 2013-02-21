@@ -28,7 +28,7 @@ namespace garf {
     // These are needed regardless of how we are doing the splitting
     struct TreeOptions {
         depth_idx_t max_depth;
-        datapoint_idx_t min_sample_count; // don't bother with a split if
+        datapoint_idx_t min_sample_count; // don't bother with a split if below this
         double min_variance;
         TreeOptions() : max_depth(2), min_sample_count(10), min_variance(0.00001) {}
 #ifdef GARF_SERIALIZE_ENABLE

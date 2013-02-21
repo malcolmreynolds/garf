@@ -244,6 +244,24 @@ def _all_leaf_nodes_wrapper(self):
             nodes_to_visit.extend([n.l, n.r])
 
 
+@tree_func("all_nodes_at_depth")
+def _all_nodes_at_depth_wrapper(self, depth):
+    """Return an iterator over all nodes at a certain depth in the tree"""
+    if depth < 0:
+        raise ValueError("depth must be >= 0")
+
+    nodes_to_visit = [self.root]
+    while nodes_to_visit != []:
+        n = nodes_to_visit.pop()
+        if n.depth == depth:
+            # If we are yielding this node because we are at the right depth,
+            # no point in traversing below it because everything below it
+            # is (by definition) at a greater depth...
+            yield n
+        elif not n.is_leaf:
+            nodes_to_visit.extend([n.l, n.r])
+
+
 @tree_func("make_node_cache")
 def _make_node_cache_wrapper(self):
     """Allows trees to access specific nodes by ID - builds a lookup dictionary"""
