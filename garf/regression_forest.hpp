@@ -258,7 +258,6 @@ namespace garf {
                                         PyObject * predict_mean_out_np,
                                         PyObject * predict_var_out_np,
                                         PyObject * leaf_indices_out_np) const;
-
 #endif
 
 
@@ -279,7 +278,6 @@ namespace garf {
 #endif
     };
 }
-
 // Need to include all the implementation here or else the compiler can't access
 // the declarations (compiling the .cpp files produces object files which don't 
 // really have anything inside).

@@ -1,7 +1,12 @@
 
 // #include <glog/logging.h>
 
+#include "util/random_seed.hpp"
+#include <random>
+
 namespace garf {
+
+    const uint32_t random_seed_sequence_length = 32;
 
 #ifdef GARF_PARALLELIZE_TBB
     // Used to synchronize access to cout to avoid absolute garbage (interleaved strings) on cout
@@ -16,9 +21,6 @@ namespace garf {
         const feature_mtx<FeatT> & all_features;
         const label_mtx<LabT> & all_labels;
         const RegressionForest<FeatT, LabT, SplitT, SplFitterT> & forest;
-        // const ForestStats & forest_stats;
-        // const SplitOptions & split_options;
-        // const ForestOptions & forest_options;
     public:
 
         // Need to make this get called with a larger rane
@@ -28,34 +30,51 @@ namespace garf {
             const feat_idx_t data_dimensions = all_features.cols();
             const label_idx_t label_dimensions = all_labels.cols();
 
-
-            // Make this distribution to pick the bagging indices
+            // distribution to pick the bagging indices
             std::uniform_int_distribution<datapoint_idx_t> bagging_index_picker(0, num_training_datapoints - 1);
 
 
-            // We make a separate SplFitter for each parallel job, this contains the RNG and so on.
-            // FIXME: better random seed method here, currenlty just using the job id of the first tree?
+            // If split_options.properly_random is selected then we will build a proper random sequence in here.
+            // If the user has not selected proper randomness this will be a null pointer, which we can safely 
+            // pass into the fitter constructor as it won't be dereferenced
+            boost::shared_ptr<std::seed_seq> seed;
+
+            if (forest.split_options.properly_random) {
+                // Make a proper random seed, reading from /dev/random
+                boost::shared_array<util::seed_t> seed_sequence(util::random_seed_sequence(random_seed_sequence_length));
+                seed.reset(new std::seed_seq(seed_sequence.get(), seed_sequence.get() + random_seed_sequence_length));
+            }
+
+            // // Uncomment this block to see what the random seeds are saying - this is basically
+            // // just to check that the random seed sequence is giving some different values to each RNG
+            // std::cout << "random seeds:" << std::endl;
+            // std::vector<uint32_t> seeds(10);
+            // seed->generate(seeds.begin(), seeds.end());
+            // for(std::uint32_t n : seeds) {
+            //     std::cout << n << std::endl;
+            // }
+
             SplFitterT<FeatT, LabT> fitter(forest.split_options, num_training_datapoints,
-                                           data_dimensions, label_dimensions, cout_mutex, r.begin());
+                                           data_dimensions, label_dimensions, cout_mutex, seed.get());
+
             cout_mutex.lock();
             std::cout << this << " got range [" << r.begin() << "," << r.end() << ") grain =  " << r.grainsize() << std::endl;
             cout_mutex.unlock();
-            for (tree_idx_t t = r.begin(); t != r.end(); t++) {
-                trees[t].tree_id = t;
 
+            for (tree_idx_t t = r.begin(); t != r.end(); t++) {
                 data_indices_vec data_indices(num_training_datapoints);
                 if (forest.forest_options.bagging) {
-                    // Sample indices from the full dataset WITH REPLACEMENT!!!
+                    // bagging: Sample indices from full dataset WITH REPLACEMENT!!!
                     for (datapoint_idx_t d = 0; d < num_training_datapoints; d++) {
                         data_indices(d) = bagging_index_picker(fitter.rng);
                     }
                 } else {
-                    // gives us a vector [0, 1, 2, 3, ... num_data_points-1]
+                    // vector [0, 1, 2, 3, ... num_data_points-1] => no bagging
                     data_indices.setLinSpaced(num_training_datapoints, 0, num_training_datapoints - 1);
                 }
 
+                trees[t].tree_id = t;
                 trees[t].train(all_features, all_labels, data_indices, forest.tree_options, &fitter);
-                // std::cout << "training for tree " << t << " done" << std::endl;
             }
         }
 

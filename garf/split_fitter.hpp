@@ -31,7 +31,7 @@ namespace garf {
                   feat_idx_t _feature_dimensionality,
                   label_idx_t _label_dims,
                   tbb::mutex & _print_mutex,
-                  uint64_t seed_value=42)
+                  std::seed_seq * seed_value = NULL)
             : split_opts(_split_opts),
               label_dims(_label_dims), 
               total_num_datapoints(_total_num_datapoints),
@@ -41,10 +41,15 @@ namespace garf {
               print_mutex(_print_mutex) {
 
             // Seed the RNG
-            print_mutex.lock();
-            std::cout << "seeding RNG with " << seed_value << std::endl;
-            print_mutex.unlock();
-            rng.seed(seed_value);
+            if (split_opts.properly_random) {
+                if (seed_value == NULL) {
+                    throw std::logic_error("using proper randomness, but no random seed provided");
+                }
+                print_mutex.lock();
+                std::cout << this << ": seeding RNG with proper randomness" << std::endl;   // << seed_value << std::endl;
+                print_mutex.unlock();
+                rng.seed(*seed_value);
+            }
         };
     };
 
@@ -114,7 +119,7 @@ namespace garf {
                              feat_idx_t _feature_dimensionality,
                              label_idx_t _label_dims,
                              tbb::mutex & _print_mutex,
-                             uint64_t seed_value)
+                             std::seed_seq * seed_value)
             : SplFitter<FeatT, LabT>(_split_opts, _total_num_datapoints, _feature_dimensionality, _label_dims, _print_mutex, seed_value),
               feat_idx_dist(0, _feature_dimensionality-1),
               feature_indices_to_evaluate(_split_opts.num_splits_to_try),

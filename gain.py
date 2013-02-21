@@ -9,8 +9,8 @@ def foo():
 
 
     rf = garf.RegressionForest()
-    rf.forest_options.max_num_trees = 100
-    rf.tree_options.max_depth = 6
+    rf.forest_options.max_num_trees = 10
+    rf.tree_options.max_depth = 2
 
     import ipdb; ipdb.set_trace()
     # for i in xrange(10000):
@@ -47,9 +47,9 @@ def foo():
 
     pred_mu, pred_var, leaf_indices = rf.predict(features, output_leaf_indices=True)
 
-    print "vals after:", pred_mu
-    print "var after:", pred_var
-    print "leaf_indices:", leaf_indices
+    # print "vals after:", pred_mu
+    # print "var after:", pred_var
+    # print "leaf_indices:", leaf_indices
 
     return rf, features, labels, pred_mu, pred_var, leaf_indices
 
