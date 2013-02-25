@@ -27,6 +27,8 @@ namespace garf {
     typedef eigen_idx_t data_dim_idx_t;
     typedef eigen_idx_t datapoint_idx_t;
     typedef eigen_idx_t split_idx_t;
+    typedef double importance_t;
+    typedef double error_t;
     typedef enum { LEFT=0, RIGHT=1 } split_dir_t;
 
 
@@ -45,6 +47,9 @@ namespace garf {
     typedef Eigen::Matrix<node_idx_t, Eigen::Dynamic, Eigen::Dynamic> tree_idx_mtx;
     typedef Eigen::Matrix<feat_idx_t, Eigen::Dynamic, 1> feat_idx_vec;
     typedef Eigen::Matrix<split_dir_t, Eigen::Dynamic, 1> split_dir_vec;
+    typedef Eigen::Matrix<bool, Eigen::Dynamic, 1> bool_vec;
+
+    typedef Eigen::Matrix<importance_t, Eigen::Dynamic, 1> importance_vec;
 }
 
 #endif

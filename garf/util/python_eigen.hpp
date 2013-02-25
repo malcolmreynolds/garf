@@ -5,7 +5,7 @@
 // by np.get_include() in the setup.py file. 
 #include "numpy/arrayobject.h"
 
-namespace garf {
+namespace garf { namespace util {
 
     template<typename T> int eigen_type_to_np(T t) { throw std::logic_error("eigen_type_to_np not implemented for this type, "); }
     template<> int eigen_type_to_np(float f) { return NPY_FLOAT; }
@@ -153,6 +153,6 @@ namespace garf {
 
         return ret_val;        
     }
-}
+}}
 
 #endif

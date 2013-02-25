@@ -9,7 +9,7 @@ namespace garf {
                                                                 const data_indices_vec & data_indices,
                                                                 const TreeOptions & tree_opts,
                                                                 SplFitterT<FeatT, LabT> * fitter,
-                                                                const MultiDimGaussianX<LabT> * const _dist) {
+                                                                const util::MultiDimGaussianX<LabT> * const _dist) {
         // Store the indices which pass through this node - this should do a copy. I hope!
         training_data_indices = data_indices;
         //LOG(INFO)

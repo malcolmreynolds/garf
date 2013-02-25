@@ -169,7 +169,7 @@ namespace garf {
     // Load & save a Multi dimensional Gaussian distribution
     template<typename T>
     template<class Archive>
-    void MultiDimGaussianX<T>::serialize(Archive & ar, const unsigned int version) {
+    void util::MultiDimGaussianX<T>::serialize(Archive & ar, const unsigned int version) {
         ar & const_cast<eigen_idx_t &>(dimensions);
         ar & mean;
         ar & cov;

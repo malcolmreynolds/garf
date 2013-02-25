@@ -71,7 +71,7 @@ namespace garf {
         const depth_idx_t depth;
 
         // distribution over label values
-        MultiDimGaussianX<LabT> dist;
+        util::MultiDimGaussianX<LabT> dist;
 
         // Which training data points passed through here
         data_indices_vec training_data_indices;
@@ -104,7 +104,7 @@ namespace garf {
                    const data_indices_vec & data_indices,
                    const TreeOptions & tree_opts,
                    SplFitterT<FeatT, LabT> * fitter,
-                   const MultiDimGaussianX<LabT> * const _dist = NULL);
+                   const util::MultiDimGaussianX<LabT> * const _dist = NULL);
 
         // decides whether the datapoints that reach this node justify further splitting
         bool stopping_conditions_reached(const TreeOptions & tree_opts) const;
@@ -134,9 +134,9 @@ namespace garf {
         }
 
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
-        const MultiDimGaussianX<LabT> & get_dist() const { return dist; }
+        const util::MultiDimGaussianX<LabT> & get_dist() const { return dist; }
         inline PyObject* get_training_indices() const {
-            return eigen_to_numpy_copy<datapoint_idx_t>(training_data_indices);
+            return util::eigen_to_numpy_copy<datapoint_idx_t>(training_data_indices);
         }
 #endif
 
@@ -244,6 +244,14 @@ namespace garf {
                 throw std::invalid_argument("invalid tree_id provided");
             }
         }
+
+#ifdef GARF_FEATURE_IMPORTANCE
+        // Do the standard feature importance calculation (basically randomly permutating
+        // each feature in turn) and seeing how the overall squared error changes
+        void calculate_feature_importance(const feature_mtx<FeatT> & features,
+                                          const label_mtx<L> & labels,
+                                          importance_vec & importance_out);
+#endif
 
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
         void py_train(PyObject * features_np, PyObject * labels_np);

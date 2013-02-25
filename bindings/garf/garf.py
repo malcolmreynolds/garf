@@ -66,19 +66,22 @@ class GarfMultiFuncDecorator(object):
     once, but I have a Forest version and Tree version. could write
     a Node version too (just another subclass) if ever needed.."""
     def __call__(self, f):
-        self.func_list.append((self.py_binding_name, f))
+        # Add this function as an attribute to all the relevant classes,
+        # ie all the forest classes or all the tree classes
+        for obj in self.obj_list:
+            setattr(obj, self.py_binding_name, f)
         return f
 
 
 class forest_func(GarfMultiFuncDecorator):
     def __init__(self, py_binding_name):
-        self.func_list = _forest_funcs
+        self.obj_list = _all_forests
         self.py_binding_name = py_binding_name
 
 
 class tree_func(GarfMultiFuncDecorator):
     def __init__(self, py_binding_name):
-        self.func_list = _tree_funcs
+        self.obj_list = _all_trees
         self.py_binding_name = py_binding_name
 
 
@@ -289,10 +292,3 @@ for forest in _all_forests:
     # this should be the same for all forests, it's basically the index type
     # (equivalent to eigen_idx_t in the C++ code).
     forest._index_type = np.long
-    for py_binding_name, func in _forest_funcs:
-        setattr(forest, py_binding_name, func)
-
-for tree in _all_trees:
-    for py_binding_name, func in _tree_funcs:
-        setattr(tree, py_binding_name, func)
-

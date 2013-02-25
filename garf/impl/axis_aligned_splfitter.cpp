@@ -102,7 +102,7 @@ namespace garf {
     bool AxisAlignedSplFitter<FeatT, LabT>::choose_split_parameters(const feature_mtx<FeatT> & all_features,
                                                        const feature_mtx<LabT> & all_labels,
                                                        const data_indices_vec & parent_data_indices,
-                                                       const MultiDimGaussianX<LabT> & parent_dist,
+                                                       const util::MultiDimGaussianX<LabT> & parent_dist,
                                                        AxisAlignedSplt<FeatT> * split,
                                                        data_indices_vec * left_child_indices_out,
                                                        data_indices_vec * right_child_indices_out) {

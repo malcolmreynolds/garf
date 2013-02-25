@@ -160,7 +160,7 @@ TEST(ForestTest, RegTest1) {
 }
 
 TEST(ForestTest, MDGTest) {
-    garf::MultiDimGaussianX<double> mdg(3);
+    garf::util::MultiDimGaussianX<double> mdg(3);
 
     MatrixXd blah(4,4);
     blah.setRandom();

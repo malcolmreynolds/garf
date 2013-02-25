@@ -4,7 +4,7 @@
 #include <cmath>
 #include <Eigen/LU>
 
-namespace garf {
+namespace garf { namespace util {
 
     template<typename T>
     double information_gain(const MultiDimGaussianX<T> & parent_dist,
@@ -37,7 +37,7 @@ namespace garf {
 
         return inf_gain;
     }
-}
+}}
 
 
 #endif

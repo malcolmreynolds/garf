@@ -53,12 +53,12 @@ BOOST_PYTHON_MODULE(_garf) {
     // that the one over floats, etc
 
     #define MULTI_DIM_GAUSSIAN_BINDINGS(T, N) \
-    class_<MultiDimGaussianX<T> >("MultiDimGaussian" N) \
-        .def_readonly("dimensions", &MultiDimGaussianX<T>::dimensions) \
-        .add_property("mean", &MultiDimGaussianX<T>::get_mean_numpy) \
-        .add_property("cov", &MultiDimGaussianX<T>::get_cov_numpy)
+    class_<util::MultiDimGaussianX<T> >("MultiDimGaussian" N) \
+        .def_readonly("dimensions", &util::MultiDimGaussianX<T>::dimensions) \
+        .add_property("mean", &util::MultiDimGaussianX<T>::get_mean_numpy) \
+        .add_property("cov", &util::MultiDimGaussianX<T>::get_cov_numpy)
 
-    MULTI_DIM_GAUSSIAN_BINDINGS(double, "");
+    MULTI_DIM_GAUSSIAN_BINDINGS(double, "D");
     MULTI_DIM_GAUSSIAN_BINDINGS(float, "F");
 
 

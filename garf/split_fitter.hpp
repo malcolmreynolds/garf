@@ -17,8 +17,8 @@ namespace garf {
         const datapoint_idx_t total_num_datapoints;
         const feat_idx_t feature_dimensionality;
 
-        MultiDimGaussianX<LabT> left_child_dist;
-        MultiDimGaussianX<LabT> right_child_dist;
+        util::MultiDimGaussianX<LabT> left_child_dist;
+        util::MultiDimGaussianX<LabT> right_child_dist;
 
         std::mt19937_64 rng; // Mersenne twister
 
@@ -149,7 +149,7 @@ namespace garf {
         virtual bool choose_split_parameters(const feature_mtx<FeatT> & features,
                                              const label_mtx<LabT> & labels,
                                              const data_indices_vec & parent_data_indices,
-                                             const MultiDimGaussianX<LabT> & parent_dist,
+                                             const util::MultiDimGaussianX<LabT> & parent_dist,
                                              AxisAlignedSplt<FeatT> * split,
                                              data_indices_vec * left_child_indices_out,
                                              data_indices_vec * right_child_indices_out);

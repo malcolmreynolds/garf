@@ -10,7 +10,7 @@
 #include "../util/python_eigen.hpp"
 #endif
 
-namespace garf {
+namespace garf { namespace util {
 
     // if we don't know the dimensionality in advance
     template<typename T>
@@ -63,21 +63,6 @@ namespace garf {
             }
         }
 
-        // inline void test_func(const MatrixBase<D> & test) const {
-        //     eigen_idx_t rows, cols;
-        //     rows = test.rows();
-        //     cols = test.cols();
-
-        //     std::cout << "in test_func, test has shape " << rows << "x" << cols << std::endl
-        //         << test << std::endl;
-        // }
-
-        /**
-            Fit mean and covariance to some dataset. Note this has to be a dynamic
-            matrix (MatriXd) because even though we know what one dimension of the matrix
-            should be (same as our dimensionality) we don't know the other one, and we
-            can't template the entire program on every possible dataset size
-         */
         inline void fit_params(const mtx<T> & input_data) {
             check_data_dimensionality(input_data);
             eigen_idx_t num_input_datapoints = input_data.rows();
@@ -121,8 +106,8 @@ namespace garf {
             }
         }
 
-        /* As above, but allows us to also pass a vector of indices indicating only
-           certain rows of the data matrix should be considered */
+        // As above, but allows us to also pass a vector of indices indicating only
+        //   certain rows of the data matrix should be considered 
         inline void fit_params(const mtx<T> & input_data, const data_indices_vec & valid_indices) {
             check_data_dimensionality(input_data);
             eigen_idx_t num_input_datapoints = valid_indices.size();
@@ -159,8 +144,8 @@ namespace garf {
             }
         }
 
-        /* As above again, but if only some of the indices in valid_indices are valid. For memory efficiency,
-           sometimes it is better to allocate a vector that is too big, and then only use the first few elements) */
+        // As above again, but if only some of the indices in valid_indices are valid. For memory efficiency,
+        // sometimes it is better to allocate a vector that is too big, and then only use the first few elements)
         inline void fit_params(const mtx<T> & input_data, const data_indices_vec & valid_indices, const eigen_idx_t num_input_datapoints) {
             check_data_dimensionality(input_data);
 
@@ -261,6 +246,6 @@ namespace garf {
         void serialize(Archive & ar, const unsigned int version);
 #endif
     };
-}
+}}
 
 #endif
