@@ -20,7 +20,7 @@ namespace garf {
         util::MultiDimGaussianX<LabT> left_child_dist;
         util::MultiDimGaussianX<LabT> right_child_dist;
 
-        std::mt19937_64 rng; // Mersenne twister
+        RngSource rng; // Mersenne twister
 
         // ref to the mutex which we need to lock to print anything
         tbb::mutex & print_mutex;

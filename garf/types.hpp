@@ -1,8 +1,11 @@
 #ifndef GARF_TYPES_HPP
 #define GARF_TYPES_HPP
 
+#include <random>
+
 // #include <Eigen/Dense>
 #include <Eigen/Core>
+
 // #include <Eigen/VectorwiseOp.h>
 
 // using namespace Eigen;
@@ -31,6 +34,7 @@ namespace garf {
     typedef double error_t;
     typedef enum { LEFT=0, RIGHT=1 } split_dir_t;
 
+    typedef std::mt19937_64 RngSource;
 
     // This will only compile with C++ 11. Sorry folks. There is lots of redundancy here, but
     // it makes the source code lovely to look at. Hooray.
@@ -50,6 +54,8 @@ namespace garf {
     typedef Eigen::Matrix<bool, Eigen::Dynamic, 1> bool_vec;
 
     typedef Eigen::Matrix<importance_t, Eigen::Dynamic, 1> importance_vec;
+    typedef Eigen::Matrix<error_t, Eigen::Dynamic, 1> error_vec;
+    typedef Eigen::Matrix<error_t, Eigen::Dynamic, Eigen::Dynamic> error_mtx;
 }
 
 #endif

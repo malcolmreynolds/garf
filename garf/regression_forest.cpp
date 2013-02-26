@@ -184,10 +184,8 @@ namespace garf {
                                                                                       feat_idx_t num_datapoints_to_predict) const {
         if (labels_out == NULL) {
             throw std::invalid_argument("predict(): label ouput vector must be supplied!");
-        } else if (labels_out->cols() != forest_stats.label_dimensions) {
-            throw std::invalid_argument("predict(): labels_out->cols() != trained label dimensions");
-        } else if (labels_out->rows() != num_datapoints_to_predict) {
-            throw std::invalid_argument("predict(): labels_out->rows() doesn't match num features to predict");
+        } else if (!label_mtx_correct_shape(*labels_out, num_datapoints_to_predict)) {
+            throw std::invalid_argument("predict(): labels_out is wrong shape");
         }
     }
 
@@ -199,10 +197,8 @@ namespace garf {
                                                                                          feat_idx_t num_datapoints_to_predict) const {
         if (variances_out == NULL) {
             return false;  // caller of predict() hasn't supplied a vector output, so don't compute variances
-        } else if (variances_out->cols() != forest_stats.label_dimensions) {
-            throw std::invalid_argument("predict(): variances_out->cols() != trained label dimensions");
-        } else if (variances_out->rows() != num_datapoints_to_predict) {
-            throw std::invalid_argument("predict(): variances_out->rows() doesn't match num features to predict");
+        } else if (!label_mtx_correct_shape(*variances_out, num_datapoints_to_predict)) {
+            throw std::invalid_argument("predict(): variances_out is wrong shape");
         }
         return true; // all conditions satisfied, so we should return variances
     }
@@ -221,6 +217,32 @@ namespace garf {
         return true; // all conditions satisfied, okay to return leaf indices
     }
 
+
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    bool RegressionForest<FeatT, LabT, SplitT, SplFitterT>::label_mtx_correct_shape(const label_mtx<LabT> & labels,
+                                                                                    datapoint_idx_t num_datapoints_to_predict) const {
+        if (labels.rows() != num_datapoints_to_predict) {
+            return false;
+        } else if (labels.cols() != forest_stats.label_dimensions) {
+            return false;
+        }
+        return true;
+    }
+
+
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    bool RegressionForest<FeatT, LabT, SplitT, SplFitterT>::feature_mtx_correct_shape(const feature_mtx<FeatT> & features,
+                                                                                      datapoint_idx_t num_datapoints_to_predict) const {
+        if (features.rows() != num_datapoints_to_predict) {
+            return false;
+        } else if (features.cols() != forest_stats.data_dimensions) {
+            return false;
+        }
+        return true;
+
+    }
+
+
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::predict(const feature_mtx<FeatT> & features,
                                                                     label_mtx<LabT> * const labels_out,
@@ -232,8 +254,8 @@ namespace garf {
 
         // Check features
         feat_idx_t num_datapoints_to_predict = features.rows();
-        if (features.cols() != forest_stats.data_dimensions) {
-            throw std::invalid_argument("predict(): feature_mtx<FeatT>.cols() != trained data dimensions");
+        if (!feature_mtx_correct_shape(features, num_datapoints_to_predict)) {
+            throw std::invalid_argument("predict(): feature_mtx has wrong shape");
         }
 
         // Don't need to get a boolean variable back from the label_output test function - if it's invalid
@@ -242,7 +264,7 @@ namespace garf {
         bool outputting_variances = check_variance_output_matrix(variances_out, num_datapoints_to_predict);
         bool outputting_leaf_indices = check_leaf_index_output_matrix(leaf_indices_out, num_datapoints_to_predict);
 
-        std::cout << "in predict(), tests passed" << std::endl;
+        // std::cout << "in predict(), tests passed" << std::endl;
 
         // Clear the outputs as we will sum into them
         labels_out->setZero();

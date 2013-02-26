@@ -61,6 +61,23 @@ namespace garf {
         }
 
         return *current_node;
+    }
 
+    // for a single tree, perform the prediction for a bunch of features and get MSE by
+    // comparing to the provided ground truth. We must take in a pointer to predicted_labels_tmp
+    // as allocating that internally every time is a big waste.
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    error_t RegressionTree<FeatT, LabT, SplitT, SplFitterT>::test_error(const feature_mtx<FeatT> & features,
+                                                                        const label_mtx<LabT> & ground_truth_labels,
+                                                                        label_mtx<LabT> * predicted_labels_tmp,
+                                                                        const PredictOptions & predict_opts,
+                                                                        const datapoint_idx_t num_valid_samples) const {
+        for (datapoint_idx_t i = 0; i < num_valid_samples; i++) {
+            predicted_labels_tmp->row(i) = evaluate(features.row(i), predict_opts).dist.mean;
+        }
+
+        return util::mean_squared_error<LabT>(ground_truth_labels.topRows(num_valid_samples),
+                                              predicted_labels_tmp->topRows(num_valid_samples));
     }
 }
+

@@ -14,6 +14,7 @@ using namespace boost::python;
 #define GARF_SERIALIZE_ENABLE
 #define GARF_PYTHON_BINDINGS_ENABLE
 #define GARF_PARALLELIZE_TBB
+#define GARF_FEATURE_IMPORTANCE
 
 #include "garf/options.hpp"
 #include "garf/regression_forest.hpp"

@@ -21,6 +21,7 @@ using Eigen::MatrixXd;
 // #define VERBOSE
 #define GARF_SERIALIZE_ENABLE
 #define GARF_PARALLELIZE_TBB
+#define GARF_FEATURE_IMPORTANCE
 
 #include "garf/regression_forest.hpp"
 typedef garf::RegressionForest<double, double, garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest_ax_align;
@@ -30,6 +31,10 @@ const double tol = 0.00001;
 void make_1d_labels_from_2d_data_squared_diff(const MatrixXd & features, MatrixXd & labels) {
     labels.col(0) = features.col(0).cwiseProduct(features.col(0)) - 
                     0.5 * features.col(1).cwiseProduct(features.col(1));
+}
+
+void make_1d_labels_from_2d_data_squared_ignore_one_dim(const MatrixXd & features, MatrixXd & labels) {
+    labels.col(0) = features.col(0).cwiseProduct(features.col(0));
 }
 
 void make_1d_labels_from_1d_data_abs(const MatrixXd & features, MatrixXd & labels) {
@@ -116,6 +121,11 @@ void test_forest_with_data(forest_ax_align & forest,
     forest.clear();
     forest.train(train_data, train_labels);
 
+    //Calculate feature importance
+    garf::importance_vec importance_out(data_dims);
+    forest.calculate_feature_importance(train_data, train_labels, &importance_out);
+    std::cout << "feature importance: " << importance_out.transpose() << std::endl;
+
     // Make test data
     MatrixXd test_data(num_test_datapoints, data_dims);
     test_data.setRandom();
@@ -135,18 +145,17 @@ void test_forest_with_data(forest_ax_align & forest,
     }
 }
 
-
 // 
 
 TEST(ForestTest, RegTest1) {
     forest_ax_align forest;
-    forest.forest_options.max_num_trees = 1000;
+    forest.forest_options.max_num_trees = 10;
     forest.tree_options.max_depth = 6;
     forest.tree_options.min_sample_count = 2;
 
-    uint64_t num_train_datapoints = 1000;
+    uint64_t num_train_datapoints = 10;
     uint64_t num_test_datapoints = 2;
-    uint64_t data_dims = 200;
+    uint64_t data_dims = 2;
     uint64_t label_dims = 1;
     double data_scaler = 2.0;
     double noise_variance = 0.1;
@@ -159,65 +168,109 @@ TEST(ForestTest, RegTest1) {
                           noise_variance, answer_tolerance);
 }
 
-TEST(ForestTest, MDGTest) {
-    garf::util::MultiDimGaussianX<double> mdg(3);
 
-    MatrixXd blah(4,4);
-    blah.setRandom();
-
-    // mdg.test_func(blah);
-
-    EXPECT_TRUE(true);
-}
-
-TEST(ForestTest, RegTest2) {
+TEST(ForestTest, RegTestImportance) {
     forest_ax_align forest;
     forest.forest_options.max_num_trees = 10;
     forest.tree_options.max_depth = 6;
     forest.tree_options.min_sample_count = 2;
 
-    uint64_t num_train_datapoints = 1000;
-    uint64_t num_test_datapoints = 100;
-    uint64_t data_dims = 1;
+    uint64_t num_train_datapoints = 500;
+    uint64_t num_test_datapoints = 2;
+    uint64_t data_dims = 2;
     uint64_t label_dims = 1;
     double data_scaler = 2.0;
     double noise_variance = 0.1;
-    double answer_tolerance = 1.05;
+    double answer_tolerance= 2.0;
 
     // 1D data, 1D labels
-    test_forest_with_data(forest, make_1d_labels_from_1d_data_abs,
+    test_forest_with_data(forest, make_1d_labels_from_2d_data_squared_ignore_one_dim,
                           num_train_datapoints, num_test_datapoints,
                           data_dims, label_dims, data_scaler,
                           noise_variance, answer_tolerance);
 }
 
-TEST(ForestTest, Serialize) {
-    typedef double feat_t;
-    typedef double label_t;
 
-    uint64_t data_elements = 1000;
-    uint64_t data_dims = 2;
+TEST(ForestTest, RegTestImportanceLong) {
+    forest_ax_align forest;
+    forest.forest_options.max_num_trees = 10;
+    forest.tree_options.max_depth = 6;
+    forest.tree_options.min_sample_count = 2;
+
+    uint64_t num_train_datapoints = 5000;
+    uint64_t num_test_datapoints = 2;
+    uint64_t data_dims = 200;
     uint64_t label_dims = 1;
-    garf::feature_mtx<feat_t> data(data_elements, data_dims);
-    data.setRandom();
+    double data_scaler = 2.0;
+    double noise_variance = 0.1;
+    double answer_tolerance= 2.0;
 
-    garf::label_mtx<label_t> labels(data_elements, label_dims);
-    make_1d_labels_from_2d_data_squared_diff(data, labels);
-    labels.setRandom();
-
-    forest_ax_align forest1;
-    forest1.forest_options.max_num_trees = 10;
-    forest1.tree_options.max_depth = 6;
-    forest1.tree_options.min_sample_count = 2;
-    forest_ax_align forest2;
-
-
-    forest1.train(data, labels);
-    forest1.save_forest("test_serialize.forest");
-    forest2.load_forest("test_serialize.forest");
-
-    assert_forest_predictions_match<feat_t, label_t, forest_ax_align>(forest1, forest2, data);
+    // 1D data, 1D labels
+    test_forest_with_data(forest, make_1d_labels_from_2d_data_squared_ignore_one_dim,
+                          num_train_datapoints, num_test_datapoints,
+                          data_dims, label_dims, data_scaler,
+                          noise_variance, answer_tolerance);
 }
+
+// TEST(ForestTest, MDGTest) {
+//     garf::util::MultiDimGaussianX<double> mdg(3);
+
+//     MatrixXd blah(4,4);
+//     blah.setRandom();
+
+//     // mdg.test_func(blah);
+
+//     EXPECT_TRUE(true);
+// }
+
+// TEST(ForestTest, RegTest2) {
+//     forest_ax_align forest;
+//     forest.forest_options.max_num_trees = 10;
+//     forest.tree_options.max_depth = 6;
+//     forest.tree_options.min_sample_count = 2;
+
+//     uint64_t num_train_datapoints = 1000;
+//     uint64_t num_test_datapoints = 100;
+//     uint64_t data_dims = 1;
+//     uint64_t label_dims = 1;
+//     double data_scaler = 2.0;
+//     double noise_variance = 0.1;
+//     double answer_tolerance = 1.05;
+
+//     // 1D data, 1D labels
+//     test_forest_with_data(forest, make_1d_labels_from_1d_data_abs,
+//                           num_train_datapoints, num_test_datapoints,
+//                           data_dims, label_dims, data_scaler,
+//                           noise_variance, answer_tolerance);
+// }
+
+// TEST(ForestTest, Serialize) {
+//     typedef double feat_t;
+//     typedef double label_t;
+
+//     uint64_t data_elements = 1000;
+//     uint64_t data_dims = 2;
+//     uint64_t label_dims = 1;
+//     garf::feature_mtx<feat_t> data(data_elements, data_dims);
+//     data.setRandom();
+
+//     garf::label_mtx<label_t> labels(data_elements, label_dims);
+//     make_1d_labels_from_2d_data_squared_diff(data, labels);
+//     labels.setRandom();
+
+//     forest_ax_align forest1;
+//     forest1.forest_options.max_num_trees = 10;
+//     forest1.tree_options.max_depth = 6;
+//     forest1.tree_options.min_sample_count = 2;
+//     forest_ax_align forest2;
+
+
+//     forest1.train(data, labels);
+//     forest1.save_forest("test_serialize.forest");
+//     forest2.load_forest("test_serialize.forest");
+
+//     assert_forest_predictions_match<feat_t, label_t, forest_ax_align>(forest1, forest2, data);
+// }
 
 GTEST_API_ int main(int argc, char **argv) {
     // Print everything, including INFO and WARNING

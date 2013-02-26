@@ -28,6 +28,7 @@ using namespace tbb;
 #include "splitter.hpp"
 #include "split_fitter.hpp"
 #include "util/multi_dim_gaussian.hpp"
+#include "util/array_utils.hpp"
 
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
 #include "util/python_eigen.hpp"
@@ -171,6 +172,11 @@ namespace garf {
         // Given some data vector, return a const reference to the node it would stop at
         const RegressionNode<FeatT, LabT, SplitT, SplFitterT> & evaluate(const feature_vec<FeatT> & fvec,
                                                                          const PredictOptions & predict_options) const;
+        error_t test_error(const feature_mtx<FeatT> & features,
+                           const label_mtx<LabT> & ground_truth_labels,
+                           label_mtx<LabT> * predicted_labels_tmp,
+                           const PredictOptions & predict_opts,
+                           const datapoint_idx_t num_valid_samples) const;
 
         template<typename F, typename L, template<typename> class S, template<typename,typename> class ST>
         friend std::ostream& operator<< (std::ostream& stream, const RegressionTree<F, L, S, ST> & tree);
@@ -208,6 +214,9 @@ namespace garf {
         void predict_single_vector(const feature_vec<FeatT> & feature_vec,
                                    boost::scoped_array<RegressionNode<FeatT, LabT, SplitT, SplFitterT> const *> * leaf_nodes_reached) const;
 
+        // Return true or false whether a matrix is the right shape
+        bool feature_mtx_correct_shape(const feature_mtx<FeatT> & features, datapoint_idx_t num_datapoints_to_predict) const;
+        bool label_mtx_correct_shape(const label_mtx<LabT> & labels, datapoint_idx_t num_datapoints_to_predict) const;
 
     public:
 
@@ -227,6 +236,11 @@ namespace garf {
                      label_mtx<LabT> * const variances_out = NULL,
                      tree_idx_mtx * const leaf_indices_output = NULL) const;
 
+        // given some features, predict for all of them then compare to the ground truth labels
+        error_t test_error(const feature_mtx<FeatT> & features,
+                           const label_mtx<LabT> & ground_truth_labels) const;
+        error_t mean_squared_error(const label_mtx<LabT> & ground_truth_labels,
+                                   const label_mtx<LabT> & predicted_labels) const;
 
         inline bool is_trained() const { return trained; }
 
@@ -245,27 +259,27 @@ namespace garf {
             }
         }
 
-#ifdef GARF_FEATURE_IMPORTANCE
         // Do the standard feature importance calculation (basically randomly permutating
         // each feature in turn) and seeing how the overall squared error changes
         void calculate_feature_importance(const feature_mtx<FeatT> & features,
-                                          const label_mtx<L> & labels,
-                                          importance_vec & importance_out);
-#endif
+                                          const label_mtx<LabT> & labels,
+                                          importance_vec * const importance_out);
 
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
-        void py_train(PyObject * features_np, PyObject * labels_np);
+        void py_train(PyObject * const features_np, PyObject * const labels_np);
 
         // We overload all of these so that they all have the name _predict in python - see garf.cpp
-        void py_predict_mean(PyObject * features_np,
-                             PyObject * predict_mean_out_np);
-        void py_predict_mean_var(PyObject * features_np,
-                                 PyObject * predict_mean_out_np,
-                                 PyObject * predict_var_out_np) const;
-        void py_predict_mean_var_leaves(PyObject * features_np,
-                                        PyObject * predict_mean_out_np,
-                                        PyObject * predict_var_out_np,
-                                        PyObject * leaf_indices_out_np) const;
+        void py_predict_mean(PyObject * const features_np,
+                             PyObject * const predict_mean_out_np) const;
+        void py_predict_mean_var(PyObject * const features_np,
+                                 PyObject * const predict_mean_out_np,
+                                 PyObject * const predict_var_out_np) const;
+        void py_predict_mean_var_leaves(PyObject * const features_np,
+                                        PyObject * const predict_mean_out_np,
+                                        PyObject * const predict_var_out_np,
+                                        PyObject * const leaf_indices_out_np) const;
+        void py_feature_importance(PyObject * const features_np,
+                                   PyObject * const labels_np);
 #endif
 
 
@@ -293,8 +307,15 @@ namespace garf {
 #include "regression_tree.cpp"
 #include "regression_node.cpp"
 
+#include "testing.hpp"
+
 // Contains all the serialization
+#ifdef GARF_SERIALIZE_ENABLE
 #include "serialization.cpp"
+#endif
+
+// Feature importance bits
+#include "importance.hpp"
 
 
 #endif
