@@ -80,6 +80,7 @@ BOOST_PYTHON_MODULE(_garf) {
         .def("_predict", &RegressionForest<F, L, S, SF>::py_predict_mean) \
         .def("_predict", &RegressionForest<F, L, S, SF>::py_predict_mean_var) \
         .def("_predict", &RegressionForest<F, L, S, SF>::py_predict_mean_var_leaves) \
+        .def("_feature_importance", &RegressionForest<F, L, S, SF>::py_feature_importance) \
         .def("get_tree", &RegressionForest<F, L, S, SF>::get_tree, \
              return_value_policy<copy_const_reference>()) \
         .def("load_forest", &RegressionForest<F, L, S, SF>::load_forest) \

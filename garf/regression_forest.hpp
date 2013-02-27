@@ -263,7 +263,7 @@ namespace garf {
         // each feature in turn) and seeing how the overall squared error changes
         void calculate_feature_importance(const feature_mtx<FeatT> & features,
                                           const label_mtx<LabT> & labels,
-                                          importance_vec * const importance_out);
+                                          importance_vec * const importance_out) const;
 
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
         void py_train(PyObject * const features_np, PyObject * const labels_np);
@@ -279,7 +279,8 @@ namespace garf {
                                         PyObject * const predict_var_out_np,
                                         PyObject * const leaf_indices_out_np) const;
         void py_feature_importance(PyObject * const features_np,
-                                   PyObject * const labels_np);
+                                   PyObject * const labels_np,
+                                   PyObject * const importance_out_np) const;
 #endif
 
 

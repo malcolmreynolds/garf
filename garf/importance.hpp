@@ -11,16 +11,10 @@ namespace garf {
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::calculate_feature_importance(const feature_mtx<FeatT> & features,
                                                                                          const label_mtx<LabT> & labels,
-                                                                                         importance_vec * const importance_out) {
-
-
-
-        // 1. Need to make a local (stack allocated if possible) copy the size of the feature matrix in
-        // For each tree:
-        //     Make a mask of datapoins which are out of bag for the tree
-        //     Predict with tree for each of these datapoints
-        //     for each variable:
-        //         permute the values in these variables, put through the forest
+                                                                                         importance_vec * const importance_out) const {
+        if (!trained) {
+            throw std::logic_error("cannot calculate feature importance before training!");
+        }
 
         feat_idx_t num_features = forest_stats.data_dimensions;
         if (importance_out->size() != num_features) {

@@ -354,8 +354,8 @@ namespace garf {
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_train(PyObject * features_np,
-                                                                     PyObject * labels_np) {
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_train(PyObject * const features_np,
+                                                                     PyObject * const labels_np) {
         // copy Numpy format into eigen format
         boost::shared_ptr<const feature_mtx<FeatT> > features(util::numpy_obj_to_eigen_copy<FeatT>(features_np));
         std::cout << "after conversion into eigen:" << std::endl
@@ -370,8 +370,8 @@ namespace garf {
     }
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_predict_mean(PyObject * features_np,
-                                                                            PyObject * predict_mean_out_np) {
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_predict_mean(PyObject * const features_np,
+                                                                            PyObject * const predict_mean_out_np) const {
 
         // Convert features into python format
         boost::shared_ptr<const feature_mtx<FeatT> > features(util::numpy_obj_to_eigen_copy<FeatT>(features_np));
@@ -387,9 +387,9 @@ namespace garf {
     }
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_predict_mean_var(PyObject * features_np, 
-                                                                       PyObject * predict_mean_out_np,
-                                                                       PyObject * predict_var_out_np) const {
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_predict_mean_var(PyObject * const features_np, 
+                                                                                PyObject * const predict_mean_out_np,
+                                                                                PyObject * const predict_var_out_np) const {
 
         // Convert features into python format
         boost::shared_ptr<const feature_mtx<FeatT> > features(util::numpy_obj_to_eigen_copy<FeatT>(features_np));
@@ -406,10 +406,10 @@ namespace garf {
     }
 
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
-    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_predict_mean_var_leaves(PyObject * features_np,
-                                                                       PyObject * predict_mean_out_np,
-                                                                       PyObject * predict_var_out_np,
-                                                                       PyObject * leaf_indices_out_np) const {
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_predict_mean_var_leaves(PyObject * const features_np,
+                                                                                       PyObject * const predict_mean_out_np,
+                                                                                       PyObject * const predict_var_out_np,
+                                                                                       PyObject * const leaf_indices_out_np) const {
 
 
         // Convert features into python format
@@ -427,5 +427,22 @@ namespace garf {
         util::copy_eigen_data_to_numpy<LabT>(predict_var_out_eig, predict_var_out_np);
         util::copy_eigen_data_to_numpy<tree_idx_t>(leaf_indices_out_eig, leaf_indices_out_np);
     }
+
+    template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
+    void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::py_feature_importance(PyObject * const features_np,
+                                                                                  PyObject * const labels_np,
+                                                                                  PyObject * const importance_out_np) const {
+
+        boost::shared_ptr<const feature_mtx<FeatT> > features(util::numpy_obj_to_eigen_copy<FeatT>(features_np));
+        boost::shared_ptr<const label_mtx<LabT> > labels(util::numpy_obj_to_eigen_copy<LabT>(labels_np));
+
+        // temporary eigen array for importance
+        importance_vec importance_out_eig(forest_stats.data_dimensions);
+
+        calculate_feature_importance(*features, *labels, &importance_out_eig);
+
+        util::copy_eigen_data_to_numpy<importance_t>(importance_out_eig, importance_out_np);
+    }
+
 #endif
 }

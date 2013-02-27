@@ -127,6 +127,11 @@ def _train_wrapper(self, features, labels, debug=True):
 
     print "no invalid values detected at training"
 
+    if len(features.shape) != 2:
+        raise ValueError("features.shape must == 2")
+    if len(labels.shape) != 2:
+        raise ValueError("labels.shape must == 2")
+
     # Do type checking here - Boost.python not handling it for us any more
     if features.dtype != self._feat_type:
         self.l("casting features to", self._feat_type)
@@ -196,6 +201,26 @@ def _predict_wrapper(self, features, mean_out=None, var_out=None, leaves_out=Non
         self.l("predicting with no output leaves")
         self._predict(features, mean_out, var_out)
         return mean_out, var_out
+
+
+@forest_func("feature_importance")
+def _feature_importance_wrapper(self, features, labels, importance_out=None):
+    if not self.trained:
+        raise ValueError("cannot calculate importance before forest trained")
+
+    if _any_invalid_numbers(features):
+        raise ValueError("training features contain NaN or infinity")
+    if _any_invalid_numbers(labels):
+        raise ValueError("training labels contain NaN or infinity")
+
+    num_features = self.stats.data_dimensions
+    if importance_out is None:
+        importance_out = np.zeros((num_features, 1), dtype=self._importance_type)
+    else:
+        self.check_array(importance_out, (num_features, 1), self._importance_type)
+    self._feature_importance(features, labels, importance_out)
+    return importance_out.flatten()
+
 
 __default_max_depth = 10
 
@@ -292,3 +317,4 @@ for forest in _all_forests:
     # this should be the same for all forests, it's basically the index type
     # (equivalent to eigen_idx_t in the C++ code).
     forest._index_type = np.long
+    forest._importance_type = np.float64
