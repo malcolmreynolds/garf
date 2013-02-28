@@ -5,41 +5,12 @@ from datetime import datetime
 
 from _garf import *
 
+import object_list
 
 # As default, use doubles for everything with axis aligned - allows people to do "garf.RegressionForest" and get something useful
 RegressionForest = RegressionForest_D_D
 RegressionTree = RegressionTree_D_D
 RegressionNode = RegressionNode_D_D
-
-
-
-# These lists must be complete, or else stuff really won't work! If a new forest is added, the corresponding
-# forest, node and tree
-_all_nodes = [
-    RegressionNode,
-    RegressionNode_F_F
-]
-
-_all_forests = [
-    RegressionForest,
-    RegressionForest_F_F
-]
-
-_all_trees = [
-    RegressionTree,
-    RegressionTree_F_F
-]
-
-_all_options = [
-    ForestOptions,
-    TreeOptions,
-    SplitOptions,
-    PredictOptions
-]
-
-_forest_funcs = []
-_tree_funcs = []
-# __node_funcs = []  # not needed.. yet
 
 
 # Set the correct types for things. Ideally want an automatic way to do this
@@ -75,13 +46,13 @@ class GarfMultiFuncDecorator(object):
 
 class forest_func(GarfMultiFuncDecorator):
     def __init__(self, py_binding_name):
-        self.obj_list = _all_forests
+        self.obj_list = object_list._all_forests
         self.py_binding_name = py_binding_name
 
 
 class tree_func(GarfMultiFuncDecorator):
     def __init__(self, py_binding_name):
-        self.obj_list = _all_trees
+        self.obj_list = object_list._all_trees
         self.py_binding_name = py_binding_name
 
 
@@ -308,13 +279,3 @@ def _get_node_wrapper(self, node_id):
         # cache doesn't exist yet, so make it..
         self.make_node_cache()
         return self.node_lookup[node_id]
-
-# The stuff below here MUST be after all the functions which have been defined
-# with the @forest_func decorators. It makes sure that the functions get added to
-
-for forest in _all_forests:
-    # Set the index type we need to use for return matrices which get passed in.
-    # this should be the same for all forests, it's basically the index type
-    # (equivalent to eigen_idx_t in the C++ code).
-    forest._index_type = np.long
-    forest._importance_type = np.float64

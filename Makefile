@@ -42,7 +42,7 @@ clean :
 
 
 REG_FRST_HDRS = garf/*.hpp garf/util/*.hpp
-REG_FRST_SRC = garf/*.cpp garf/*.hpp garf/impl/*.cpp garf/util/*.hpp
+REG_FRST_SRC = garf/*.cpp garf/*.hpp garf/splits/*.cpp garf/util/*.hpp
 
 
 

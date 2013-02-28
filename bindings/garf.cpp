@@ -97,16 +97,37 @@ BOOST_PYTHON_MODULE(_garf) {
         .add_property("training_indices", &RegressionNode<F, L, S, SF>::get_training_indices) \
         .add_property("dist", make_function(&RegressionNode<F, L, S, SF>::get_dist, \
                                             return_value_policy<copy_const_reference>())) \
+        .add_property("split", make_function(&RegressionNode<F, L, S, SF>::get_split, \
+                                             return_value_policy<copy_const_reference>())) \
         .add_property("l", make_function(&RegressionNode<F, L, S, SF>::get_left, \
                                          return_value_policy<copy_const_reference>())) \
         .add_property("r", make_function(&RegressionNode<F, L, S, SF>::get_right, \
                                          return_value_policy<copy_const_reference>()))
+
+    #define EXPOSE_SPLIT_CLASSES(F, FN) \
+    class_<AxisAlignedSplt<F> >("AxisAlignedSplt" FN) \
+        .def_readonly("feat_idx", &AxisAlignedSplt<F>::feat_idx) \
+        .def_readonly("thresh", &AxisAlignedSplt<F>::thresh) \
+        .def("name", &AxisAlignedSplt<F>::name); \
+    class_<TwoDimSplt<F> >("TwoDimSplt" FN) \
+        .def_readonly("feat_idx_1", &TwoDimSplt<F>::feat_1) \
+        .def_readonly("feat_idx_2", &TwoDimSplt<F>::feat_2) \
+        .def_readonly("weight_feat_1", &TwoDimSplt<F>::weight_feat_1) \
+        .def_readonly("weight_feat_2", &TwoDimSplt<F>::weight_feat_2) \
+        .def_readonly("thresh", &TwoDimSplt<F>::thresh) \
+        .def("name", &TwoDimSplt<F>::name)
+
+
+    EXPOSE_SPLIT_CLASSES(double, "_D");
+    EXPOSE_SPLIT_CLASSES(float, "_F");
+
 
     // Operating on doubles & using axis aligned is a reasonable default, so we don't need 
     // any special strings in the class name - ie the "RegressionForest" python side class will
     // be this case of double features, double lables, axis aligned splits
     EXPOSE_FOREST_CLASSES(double, double, AxisAlignedSplt, AxisAlignedSplFitter, "_D", "_D", "");
     EXPOSE_FOREST_CLASSES(float, float, AxisAlignedSplt, AxisAlignedSplFitter, "_F", "_F", "");
+
 
 }
 

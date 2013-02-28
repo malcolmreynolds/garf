@@ -195,6 +195,8 @@ namespace garf {
     void SplitOptions::serialize(Archive & ar, const unsigned int version) {
         ar & num_splits_to_try;
         ar & threshes_per_split;
+        ar & properly_random;
+        ar & num_per_side_for_viable_split;
     }
 
     // Load & save PredictOptions

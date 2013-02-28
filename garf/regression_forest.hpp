@@ -134,7 +134,9 @@ namespace garf {
             return *right;
         }
 
+
 #ifdef GARF_PYTHON_BINDINGS_ENABLE
+        const SplitT<FeatT> & get_split() const { return split; }
         const util::MultiDimGaussianX<LabT> & get_dist() const { return dist; }
         inline PyObject* get_training_indices() const {
             return util::eigen_to_numpy_copy<datapoint_idx_t>(training_data_indices);

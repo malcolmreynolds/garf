@@ -43,8 +43,12 @@ namespace garf {
     struct SplitOptions {
         split_idx_t num_splits_to_try;
         split_idx_t threshes_per_split;
-        bool properly_random; // Turn this off to make the system deterministic, for testing etc
-        SplitOptions() : num_splits_to_try(5), threshes_per_split(3), properly_random(true) {}
+        bool properly_random;  // Turn this off to make the system deterministic, for testing etc
+        datapoint_idx_t num_per_side_for_viable_split;
+
+        SplitOptions() :
+            num_splits_to_try(5), threshes_per_split(3), 
+            properly_random(true), num_per_side_for_viable_split(5) {}
 #ifdef GARF_SERIALIZE_ENABLE
     private:
         friend class boost::serialization::access;

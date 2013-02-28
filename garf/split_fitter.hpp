@@ -25,6 +25,49 @@ namespace garf {
         // ref to the mutex which we need to lock to print anything
         tbb::mutex & print_mutex;
 
+        // Store all the different feature values for every single datapoint to land at the node.
+        // We made this total_datapoints x num_splits_to_try, which will only be fully used
+        // at the root node, afterwards we only use however many topmost rows as we need.
+        feature_mtx<FeatT> candidate_feature_values;
+
+        // Store the min and max values for each feature we are trying to generate data on
+        feature_vec<FeatT> min_feature_values;
+        feature_vec<FeatT> max_feature_values;
+
+        // Temporary vector to store which direction things go in (to calculate
+        // information gains etc) - 
+        split_dir_vec candidate_split_directions;
+
+        // Temporary vectors to store which data is going left and right. As with feature_values
+        // we only need
+        data_indices_vec samples_going_left;
+        data_indices_vec samples_going_right;
+
+        // Keep track of the amounts in the above vectors which are valid
+        datapoint_idx_t num_going_left;
+        datapoint_idx_t num_going_right;
+
+        LabT best_inf_gain;
+        bool good_split_found;
+
+        // This stores the randomly samples thresholds we come up with for each feature, 
+        // it is initialised to size num_splits_to_try x threshes_per_split
+        feature_mtx<FeatT> split_thresholds;
+
+
+
+        // Pick some thresholds for each candidate feature, with min and max values
+        void generate_split_thresholds();
+
+        // Check whether the candidate splits are okay
+        void check_split_thresholds();
+
+
+        // Find the min and max values of the features we have
+        void find_min_max_features(const datapoint_idx_t num_in_parent);
+
+        bool is_admissible_split(eigen_idx_t num_going_left, eigen_idx_t num_going_right) const;
+
 
         SplFitter(const SplitOptions & _split_opts,
                   datapoint_idx_t _total_num_datapoints,
@@ -38,8 +81,16 @@ namespace garf {
               feature_dimensionality(_feature_dimensionality),
               left_child_dist(_label_dims),
               right_child_dist(_label_dims),
-              print_mutex(_print_mutex) {
-
+              print_mutex(_print_mutex),
+              candidate_feature_values(_total_num_datapoints, _split_opts.num_splits_to_try),
+              min_feature_values(_split_opts.num_splits_to_try),
+              max_feature_values(_split_opts.num_splits_to_try),
+              candidate_split_directions(_total_num_datapoints),
+              samples_going_left(_total_num_datapoints),
+              samples_going_right(_total_num_datapoints),
+              num_going_left(-1),
+              num_going_right(-1),
+              split_thresholds(_split_opts.num_splits_to_try, _split_opts.threshes_per_split) {
             // Seed the RNG
             if (split_opts.properly_random) {
                 if (seed_value == NULL) {
@@ -63,54 +114,14 @@ namespace garf {
         // of length split_opts.num_splits_to_try (currently constant per node)
         feat_idx_vec feature_indices_to_evaluate;
 
-        // Store all the different feature values for every single datapoint to land at the node.
-        // We made this total_datapoints x num_splits_to_try, which will only be fully used
-        // at the root node, afterwards we only use however many topmost rows as we need.
-        feature_mtx<FeatT> candidate_feature_values;
-
-        // Store the min and max values for each feature we are trying to generate data on
-        feature_vec<FeatT> min_feature_values;
-        feature_vec<FeatT> max_feature_values;
-
-        // This stores the randomly samples thresholds we come up with for each feature, 
-        // it is initialised to size num_splits_to_try x threshes_per_split
-        feature_mtx<FeatT> split_thresholds;
-
-        // This is used to generate the thresholds we use for splitting
-        // std::uniform_real_distribution<FeatT> thresh_dist; 
-
-        // Temporary vector to store which direction things go in (to calculate
-        // information gains etc) - 
-        split_dir_vec candidate_split_directions;
-
-        // Temporary vectors to store which data is going left and right. As with feature_values
-        // we only need
-        data_indices_vec samples_going_left;
-        data_indices_vec samples_going_right;
-
-        // Keep track of the amounts in the above vectors which are valid
-        datapoint_idx_t num_going_left;
-        datapoint_idx_t num_going_right;
-
-        LabT best_inf_gain;
-        bool good_split_found;
-
         // Fill the feature_indices_to_evaluate vector with some new features
         void select_candidate_features();
-
 
         // For each datapoint which lands in this node
         void evaluate_datapoints_at_each_feature(const feature_mtx<FeatT> & features,
                                                  const data_indices_vec & parent_data_indices,
                                                  const datapoint_idx_t num_in_parent);
 
-        // Find the min and max values of the features we have
-        void find_min_max_features(const datapoint_idx_t num_in_parent);
-
-        // Pick some thresholds for each candidate feature, with min and max values
-        void generate_split_thresholds();
-
-        void check_split_thresholds();
 
     public:
 
@@ -122,17 +133,8 @@ namespace garf {
                              std::seed_seq * seed_value)
             : SplFitter<FeatT, LabT>(_split_opts, _total_num_datapoints, _feature_dimensionality, _label_dims, _print_mutex, seed_value),
               feat_idx_dist(0, _feature_dimensionality-1),
-              feature_indices_to_evaluate(_split_opts.num_splits_to_try),
-              candidate_feature_values(_total_num_datapoints, _split_opts.num_splits_to_try),
-              min_feature_values(_split_opts.num_splits_to_try),
-              max_feature_values(_split_opts.num_splits_to_try),
-              split_thresholds(_split_opts.num_splits_to_try, _split_opts.threshes_per_split),
-              candidate_split_directions(_total_num_datapoints),
-              samples_going_left(_total_num_datapoints),
-              samples_going_right(_total_num_datapoints),
-              num_going_left(-1),
-              num_going_right(-1)
-               {};
+              feature_indices_to_evaluate(_split_opts.num_splits_to_try)
+              {};
 
         void evaluate_single_split(const data_indices_vec & data_indices,
                                    const datapoint_idx_t num_in_parent,
@@ -156,7 +158,8 @@ namespace garf {
     };
 }
 
-#include "impl/axis_aligned_splfitter.cpp"
+#include "splits/splfitter.cpp"
+#include "splits/axis_aligned_splfitter.cpp"
 
 
 #endif
