@@ -14,11 +14,12 @@ RegressionNode = RegressionNode_D_D_AX
 
 
 # Set the correct types for things. Ideally want an automatic way to do this
-RegressionForest_D_D._feat_type = np.float64
-RegressionForest_D_D._label_type = np.float64
 
-RegressionForest_F_F._feat_type = np.float32
-RegressionForest_F_F._label_type = np.float32
+RegressionForest_D_D_AX._feat_type = np.float64
+RegressionForest_D_D_AX._label_type = np.float64
+
+RegressionForest_F_F_AX._feat_type = np.float32
+RegressionForest_F_F_AX._label_type = np.float32
 
 
 class GarfMultiFuncDecorator(object):

@@ -4,7 +4,7 @@ import garf
 from sys import getrefcount
 
 def foo():
-    rf = garf.RegressionForest()
+    rf = garf.RegressionForest_D_D_2D()
     rf.forest_options.max_num_trees = 10
     rf.tree_options.max_depth = 2
 

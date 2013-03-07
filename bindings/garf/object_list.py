@@ -34,8 +34,40 @@ _all_options = [
     PredictOptions
 ]
 
+_double_feat_forests = [
+    RegressionForest_D_D_2D,
+    RegressionForest_D_D_AX,
+]
+
+_double_label_forests = [
+    RegressionForest_D_D_2D,
+    RegressionForest_D_D_AX,
+]
+
+_float_feat_forests = [
+    RegressionForest_F_F_2D,
+    RegressionForest_F_F_AX,
+]
+
+_float_label_forests = [
+    RegressionForest_F_F_2D,
+    RegressionForest_F_F_AX,
+]
+
+for forest in _double_feat_forests:
+    forest._feat_type = np.float64
+
+for forest in _double_label_forests:
+    forest._label_type = np.float64
+
+for forest in _float_feat_forests:
+    forest._feat_type = np.float32
+
+for forest in _float_label_forests:
+    forest._label_type = np.float32
+
 for forest in _all_forests:
-    # Set the index type we need to use for return matrices which get passed in.
+    # Set the index type we use for return matrices which get passed in.
     # this should be the same for all forests, it's basically the index type
     # (equivalent to eigen_idx_t in the C++ code).
     forest._index_type = np.long
