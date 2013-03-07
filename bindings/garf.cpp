@@ -125,8 +125,10 @@ BOOST_PYTHON_MODULE(_garf) {
     // Operating on doubles & using axis aligned is a reasonable default, so we don't need 
     // any special strings in the class name - ie the "RegressionForest" python side class will
     // be this case of double features, double lables, axis aligned splits
-    EXPOSE_FOREST_CLASSES(double, double, AxisAlignedSplt, AxisAlignedSplFitter, "_D", "_D", "");
-    EXPOSE_FOREST_CLASSES(float, float, AxisAlignedSplt, AxisAlignedSplFitter, "_F", "_F", "");
+    EXPOSE_FOREST_CLASSES(double, double, AxisAlignedSplt, AxisAlignedSplFitter, "_D", "_D", "_AX");
+    EXPOSE_FOREST_CLASSES(float, float, AxisAlignedSplt, AxisAlignedSplFitter, "_F", "_F", "_AX");
+    EXPOSE_FOREST_CLASSES(double, double, TwoDimSplt, TwoDimSplFitter, "_D", "_D", "_2D");
+    EXPOSE_FOREST_CLASSES(float, float, TwoDimSplt, TwoDimSplFitter, "_F", "_F", "_2D");
 
 
 }

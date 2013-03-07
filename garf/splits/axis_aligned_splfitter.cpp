@@ -1,34 +1,6 @@
 namespace garf {
 
     template<typename FeatT, typename LabT>
-    void AxisAlignedSplFitter<FeatT, LabT>::evaluate_single_split(const data_indices_vec & data_indices,
-                                                                  const datapoint_idx_t num_in_parent,
-                                                                  split_idx_t split_feature, FeatT thresh,
-                                                                  split_dir_vec * candidate_split_directions,
-                                                                  data_indices_vec * const indices_going_left,
-                                                                  data_indices_vec * const indices_going_right,
-                                                                  datapoint_idx_t * const num_going_left,
-                                                                  datapoint_idx_t * const num_going_right) const {
-        // Keep track of places to 
-        datapoint_idx_t left_idx = 0;
-        datapoint_idx_t right_idx = 0;
-
-        for (datapoint_idx_t i = 0; i < num_in_parent; i++) {
-            if (this->candidate_feature_values(i, split_feature) <= thresh) {
-                candidate_split_directions->coeffRef(i) = LEFT;
-                indices_going_left->coeffRef(left_idx) = data_indices(i);
-                left_idx++;
-            } else {
-                candidate_split_directions->coeffRef(i) = RIGHT;
-                indices_going_right->coeffRef(right_idx) = data_indices(i);
-                right_idx++;
-            }
-        }
-        *num_going_left = left_idx;
-        *num_going_right = right_idx;
-    }
-
-    template<typename FeatT, typename LabT>
     void AxisAlignedSplFitter<FeatT, LabT>::select_candidate_features() {
         const feat_idx_t num_splits_to_try = this->split_opts.num_splits_to_try;
         for (feat_idx_t i = 0; i < num_splits_to_try; i++) {
@@ -52,13 +24,21 @@ namespace garf {
         }
     }
 
+    template<typename FeatT, typename LabT>
+    void AxisAlignedSplFitter<FeatT, LabT>::set_parameters_in_splitter(const split_idx_t split_idx,
+                                                                       const split_idx_t thresh_idx,
+                                                                       AxisAlignedSplt<FeatT> * const splitter) {
+        splitter->feat_idx = this->feature_indices_to_evaluate(split_idx);
+        splitter->thresh = this->split_thresholds(split_idx, thresh_idx);
+    }
+
 
     template<typename FeatT, typename LabT>
     bool AxisAlignedSplFitter<FeatT, LabT>::choose_split_parameters(const feature_mtx<FeatT> & all_features,
                                                        const feature_mtx<LabT> & all_labels,
                                                        const data_indices_vec & parent_data_indices,
                                                        const util::MultiDimGaussianX<LabT> & parent_dist,
-                                                       AxisAlignedSplt<FeatT> * split,
+                                                       AxisAlignedSplt<FeatT> * const split,
                                                        data_indices_vec * left_child_indices_out,
                                                        data_indices_vec * right_child_indices_out) {
         const datapoint_idx_t num_in_parent = parent_data_indices.size();
@@ -109,9 +89,9 @@ namespace garf {
 
         for (split_idx_t split_idx = 0; split_idx < split_opts.num_splits_to_try; split_idx++) {
             for (split_idx_t thresh_idx = 0; thresh_idx < split_opts.threshes_per_split; thresh_idx++) {
-                evaluate_single_split(parent_data_indices, num_in_parent, split_idx, this->split_thresholds(split_idx, thresh_idx),
-                                      &this->candidate_split_directions, &this->samples_going_left, &this->samples_going_right,
-                                      &num_going_left, &num_going_right);
+                this->evaluate_single_split(parent_data_indices, num_in_parent, split_idx, this->split_thresholds(split_idx, thresh_idx),
+                                            &this->candidate_split_directions, &this->samples_going_left, &this->samples_going_right,
+                                            &num_going_left, &num_going_right);
 #ifdef VERBOSE                
                 std::cout << "split #" << split_idx << " thresh #" << thresh_idx << " = " << split_thresholds(split_idx, thresh_idx);
                 std::cout << ", feature range is [" << min_feature_values(split_idx) << "," << max_feature_values(split_idx);
@@ -179,8 +159,7 @@ namespace garf {
 
                     // Store the parameters into the split node (which is actually part of the
                     // prediction node).
-                    split->feat_idx = this->feature_indices_to_evaluate(split_idx);
-                    split->thresh = this->split_thresholds(split_idx, thresh_idx);
+                    set_parameters_in_splitter(split_idx, thresh_idx, split);
 
                     // Send the output data (ie which data goes left / right) to node::train()
                     *left_child_indices_out = this->samples_going_left.head(num_going_left);

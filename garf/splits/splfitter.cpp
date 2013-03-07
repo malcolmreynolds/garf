@@ -51,4 +51,33 @@ namespace garf {
         max_feature_values = candidate_feature_values.topRows(num_in_parent).colwise().maxCoeff();
     }
 
+    template<typename FeatT, typename LabT>
+    void SplFitter<FeatT, LabT>::evaluate_single_split(const data_indices_vec & data_indices,
+                                                                  const datapoint_idx_t num_in_parent,
+                                                                  split_idx_t split_feature, FeatT thresh,
+                                                                  split_dir_vec * candidate_split_directions,
+                                                                  data_indices_vec * const indices_going_left,
+                                                                  data_indices_vec * const indices_going_right,
+                                                                  datapoint_idx_t * const num_going_left,
+                                                                  datapoint_idx_t * const num_going_right) const {
+        // Keep track of places to 
+        datapoint_idx_t left_idx = 0;
+        datapoint_idx_t right_idx = 0;
+
+        for (datapoint_idx_t i = 0; i < num_in_parent; i++) {
+            if (this->candidate_feature_values(i, split_feature) <= thresh) {
+                candidate_split_directions->coeffRef(i) = LEFT;
+                indices_going_left->coeffRef(left_idx) = data_indices(i);
+                left_idx++;
+            } else {
+                candidate_split_directions->coeffRef(i) = RIGHT;
+                indices_going_right->coeffRef(right_idx) = data_indices(i);
+                right_idx++;
+            }
+        }
+        *num_going_left = left_idx;
+        *num_going_right = right_idx;
+    }
+
+
 }

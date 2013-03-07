@@ -5,18 +5,26 @@ from _garf import *
 in order to add functions etc to them."""
 
 _all_nodes = [
-    RegressionNode_D_D,
-    RegressionNode_F_F
+    RegressionNode_D_D_AX,
+    RegressionNode_F_F_AX,
+    RegressionNode_D_D_2D,
+    RegressionNode_F_F_2D,
+
 ]
 
 _all_forests = [
-    RegressionForest_D_D,
-    RegressionForest_F_F
+    RegressionForest_D_D_AX,
+    RegressionForest_F_F_AX,
+    RegressionForest_D_D_2D,
+    RegressionForest_F_F_2D,
+
 ]
 
 _all_trees = [
-    RegressionTree_D_D,
-    RegressionTree_F_F
+    RegressionTree_D_D_AX,
+    RegressionTree_F_F_AX,
+    RegressionTree_D_D_2D,
+    RegressionTree_F_F_2D,
 ]
 
 _all_options = [

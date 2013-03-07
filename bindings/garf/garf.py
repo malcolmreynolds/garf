@@ -8,9 +8,9 @@ from _garf import *
 import object_list
 
 # As default, use doubles for everything with axis aligned - allows people to do "garf.RegressionForest" and get something useful
-RegressionForest = RegressionForest_D_D
-RegressionTree = RegressionTree_D_D
-RegressionNode = RegressionNode_D_D
+RegressionForest = RegressionForest_D_D_AX
+RegressionTree = RegressionTree_D_D_AX
+RegressionNode = RegressionNode_D_D_AX
 
 
 # Set the correct types for things. Ideally want an automatic way to do this

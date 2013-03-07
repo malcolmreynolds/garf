@@ -4,6 +4,7 @@
 #include <random>
 
 #include "options.hpp"
+#include "splitter.hpp"
 #include "util/multi_dim_gaussian.hpp"
 #include "util/information_gain.hpp"
 
@@ -68,6 +69,15 @@ namespace garf {
 
         bool is_admissible_split(eigen_idx_t num_going_left, eigen_idx_t num_going_right) const;
 
+        void evaluate_single_split(const data_indices_vec & data_indices,
+                                   const datapoint_idx_t num_in_parent,
+                                   split_idx_t split_feature, FeatT thresh,
+                                   split_dir_vec * candidate_split_directions,
+                                   data_indices_vec * const indices_going_left,
+                                   data_indices_vec * const indices_going_right,
+                                   datapoint_idx_t * const num_going_left,
+                                   datapoint_idx_t * const num_going_right) const;
+
 
         SplFitter(const SplitOptions & _split_opts,
                   datapoint_idx_t _total_num_datapoints,
@@ -122,6 +132,9 @@ namespace garf {
                                                  const data_indices_vec & parent_data_indices,
                                                  const datapoint_idx_t num_in_parent);
 
+        void set_parameters_in_splitter(const split_idx_t split_idx,
+                                        const split_idx_t thresh_idx,
+                                        AxisAlignedSplt<FeatT> * const split);
 
     public:
 
@@ -136,30 +149,74 @@ namespace garf {
               feature_indices_to_evaluate(_split_opts.num_splits_to_try)
               {};
 
-        void evaluate_single_split(const data_indices_vec & data_indices,
-                                   const datapoint_idx_t num_in_parent,
-                                   split_idx_t split_feature, FeatT thresh,
-                                   split_dir_vec * candidate_split_directions,
-                                   data_indices_vec * const indices_going_left,
-                                   data_indices_vec * const indices_going_right,
-                                   datapoint_idx_t * const num_going_left,
-                                   datapoint_idx_t * const num_going_right) const;
-
-
         // This is the function we call that does everything. The return values indicates
         // whether a decent split has been found
-        virtual bool choose_split_parameters(const feature_mtx<FeatT> & features,
-                                             const label_mtx<LabT> & labels,
-                                             const data_indices_vec & parent_data_indices,
-                                             const util::MultiDimGaussianX<LabT> & parent_dist,
-                                             AxisAlignedSplt<FeatT> * split,
-                                             data_indices_vec * left_child_indices_out,
-                                             data_indices_vec * right_child_indices_out);
+        bool choose_split_parameters(const feature_mtx<FeatT> & features,
+                                     const label_mtx<LabT> & labels,
+                                     const data_indices_vec & parent_data_indices,
+                                     const util::MultiDimGaussianX<LabT> & parent_dist,
+                                     AxisAlignedSplt<FeatT> * split,
+                                     data_indices_vec * left_child_indices_out,
+                                     data_indices_vec * right_child_indices_out);
+    };
+
+    template<typename FeatT, typename LabT>
+    class TwoDimSplFitter : public SplFitter<FeatT, LabT> {
+
+        // Used to select feature indices to pick from
+        std::uniform_int_distribution<feat_idx_t> feat_idx_dist;
+
+        // Used to select weights for
+        std::normal_distribution<weight_t> weight_dist;
+
+        // Store which features we are considering for the first feature
+        feat_idx_vec feat_indices_1_to_evaluate;
+        feat_idx_vec feat_indices_2_to_evaluate;
+
+        // Store the weights are are multiplying each feature value by
+        weight_vec weights_1_to_evaluate;
+        weight_vec weights_2_to_evaluate;
+
+        void select_candidate_features();
+
+        // For each datapoint which lands in this node
+        void evaluate_datapoints_at_each_feature(const feature_mtx<FeatT> & features,
+                                                 const data_indices_vec & parent_data_indices,
+                                                 const datapoint_idx_t num_in_parent);
+
+        void set_parameters_in_splitter(const split_idx_t split_idx,
+                                        const split_idx_t thresh_idx,
+                                        TwoDimSplt<FeatT> * const splitter);
+    public:
+
+        TwoDimSplFitter(const SplitOptions & _split_opts,
+                        datapoint_idx_t _total_num_datapoints,
+                        feat_idx_t _feature_dimensionality,
+                        label_idx_t _label_dims,
+                        tbb::mutex & _print_mutex,
+                        std::seed_seq * seed_value)
+            : SplFitter<FeatT, LabT>(_split_opts, _total_num_datapoints, _feature_dimensionality, _label_dims, _print_mutex, seed_value),
+            feat_idx_dist(0, _feature_dimensionality-1),
+            weight_dist(0, 1),  // standard normal distribution
+            feat_indices_1_to_evaluate(_split_opts.num_splits_to_try),
+            feat_indices_2_to_evaluate(_split_opts.num_splits_to_try),
+            weights_1_to_evaluate(_split_opts.num_splits_to_try),
+            weights_2_to_evaluate(_split_opts.num_splits_to_try)
+            {};
+
+        bool choose_split_parameters(const feature_mtx<FeatT> & features,
+                                     const label_mtx<LabT> & labels,
+                                     const data_indices_vec & parent_data_indices,
+                                     const util::MultiDimGaussianX<LabT> & parent_dist,
+                                     TwoDimSplt<FeatT> * split,
+                                     data_indices_vec * left_child_indices_out,
+                                     data_indices_vec * right_child_indices_out);
     };
 }
 
 #include "splits/splfitter.cpp"
 #include "splits/axis_aligned_splfitter.cpp"
+#include "splits/two_dim_splfitter.cpp"
 
 
 #endif

@@ -57,8 +57,8 @@ namespace garf {
     public:
         feat_idx_t feat_1;
         feat_idx_t feat_2;
-        double weight_feat_1;
-        double weight_feat_2;
+        weight_t weight_feat_1;
+        weight_t weight_feat_2;
         FeatT thresh;
         inline split_dir_t evaluate(const feature_vec<FeatT> & fvec) const {
             double test_val = (fvec(feat_1) * weight_feat_1) + 

@@ -24,7 +24,7 @@ using Eigen::MatrixXd;
 #define GARF_FEATURE_IMPORTANCE
 
 #include "garf/regression_forest.hpp"
-typedef garf::RegressionForest<double, double, garf::AxisAlignedSplt, garf::AxisAlignedSplFitter> forest_ax_align;
+typedef garf::RegressionForest<double, double, garf::TwoDimSplt, garf::TwoDimSplFitter> forest_ax_align;
 
 
 const double tol = 0.00001;

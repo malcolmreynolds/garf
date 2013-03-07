@@ -32,6 +32,7 @@ namespace garf {
     typedef eigen_idx_t split_idx_t;
     typedef double importance_t;
     typedef double error_t;
+    typedef double weight_t;
     typedef enum { LEFT=0, RIGHT=1 } split_dir_t;
 
     typedef std::mt19937_64 RngSource;
@@ -56,6 +57,8 @@ namespace garf {
     typedef Eigen::Matrix<importance_t, Eigen::Dynamic, 1> importance_vec;
     typedef Eigen::Matrix<error_t, Eigen::Dynamic, 1> error_vec;
     typedef Eigen::Matrix<error_t, Eigen::Dynamic, Eigen::Dynamic> error_mtx;
+
+    typedef Eigen::Matrix<weight_t, Eigen::Dynamic, 1> weight_vec;
 }
 
 #endif
