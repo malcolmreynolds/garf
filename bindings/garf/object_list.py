@@ -5,26 +5,33 @@ from _garf import *
 in order to add functions etc to them."""
 
 _all_nodes = [
-    RegressionNode_D_D_AX,
-    RegressionNode_F_F_AX,
-    RegressionNode_D_D_2D,
-    RegressionNode_F_F_2D,
+    RegNode_D_D_AX,
+    RegNode_F_F_AX,
+    RegNode_D_D_2D,
+    RegNode_F_F_2D,
 
 ]
 
 _all_forests = [
-    RegressionForest_D_D_AX,
-    RegressionForest_F_F_AX,
-    RegressionForest_D_D_2D,
-    RegressionForest_F_F_2D,
+    RegForest_D_D_AX,
+    RegForest_F_F_AX,
+    RegForest_D_D_2D,
+    RegForest_F_F_2D,
 
 ]
 
 _all_trees = [
-    RegressionTree_D_D_AX,
-    RegressionTree_F_F_AX,
-    RegressionTree_D_D_2D,
-    RegressionTree_F_F_2D,
+    RegTree_D_D_AX,
+    RegTree_F_F_AX,
+    RegTree_D_D_2D,
+    RegTree_F_F_2D,
+]
+
+_all_nodes = [
+    RegNode_D_D_AX,
+    RegNode_F_F_AX,
+    RegNode_D_D_2D,
+    RegNode_F_F_2D,
 ]
 
 _all_options = [
@@ -35,23 +42,23 @@ _all_options = [
 ]
 
 _double_feat_forests = [
-    RegressionForest_D_D_2D,
-    RegressionForest_D_D_AX,
+    RegForest_D_D_2D,
+    RegForest_D_D_AX,
 ]
 
 _double_label_forests = [
-    RegressionForest_D_D_2D,
-    RegressionForest_D_D_AX,
+    RegForest_D_D_2D,
+    RegForest_D_D_AX,
 ]
 
 _float_feat_forests = [
-    RegressionForest_F_F_2D,
-    RegressionForest_F_F_AX,
+    RegForest_F_F_2D,
+    RegForest_F_F_AX,
 ]
 
 _float_label_forests = [
-    RegressionForest_F_F_2D,
-    RegressionForest_F_F_AX,
+    RegForest_F_F_2D,
+    RegForest_F_F_AX,
 ]
 
 for forest in _double_feat_forests:

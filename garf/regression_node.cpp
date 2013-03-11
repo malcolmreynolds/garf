@@ -63,12 +63,6 @@ namespace garf {
 #endif
             return;
         } 
-        // else {
-        //     std::cout << "[t" << tree.tree_id << ":" << node_id << "] "
-        //         << left_child_indices.size() << "/"
-        //         << right_child_indices.size() << std::endl;
-        // }
-
 
         is_leaf = false;
 

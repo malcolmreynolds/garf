@@ -5,56 +5,12 @@ from datetime import datetime
 
 from _garf import *
 
-import object_list
+from forest_decorators import *
 
-# As default, use doubles for everything with axis aligned - allows people to do "garf.RegressionForest" and get something useful
-RegressionForest = RegressionForest_D_D_AX
-RegressionTree = RegressionTree_D_D_AX
-RegressionNode = RegressionNode_D_D_AX
-
-
-# Set the correct types for things. Ideally want an automatic way to do this
-
-RegressionForest_D_D_AX._feat_type = np.float64
-RegressionForest_D_D_AX._label_type = np.float64
-
-RegressionForest_F_F_AX._feat_type = np.float32
-RegressionForest_F_F_AX._label_type = np.float32
-
-
-class GarfMultiFuncDecorator(object):
-    """Decorator for functions which need to be added to ALL
-    of the classes in some category - eg a function which must be available
-    to all Forest classes. Due to python not knowing about C++ templates,
-    we have multiple forest classes available, and we want the same functions
-    available on each. This allows us to write a function intended for (eg)
-    a forest only once, with the decorator, and code at the end of garf.py
-    will automatically add it to all appropriate classes.
-
-    Unlike normal decorators we aren't modifying the 'wrapped'
-    function at all, that is returned as normal!
-
-    The superclass-ness just allows me to write this explanation only
-    once, but I have a Forest version and Tree version. could write
-    a Node version too (just another subclass) if ever needed.."""
-    def __call__(self, f):
-        # Add this function as an attribute to all the relevant classes,
-        # ie all the forest classes or all the tree classes
-        for obj in self.obj_list:
-            setattr(obj, self.py_binding_name, f)
-        return f
-
-
-class forest_func(GarfMultiFuncDecorator):
-    def __init__(self, py_binding_name):
-        self.obj_list = object_list._all_forests
-        self.py_binding_name = py_binding_name
-
-
-class tree_func(GarfMultiFuncDecorator):
-    def __init__(self, py_binding_name):
-        self.obj_list = object_list._all_trees
-        self.py_binding_name = py_binding_name
+# As default, use doubles for everything with axis aligned - allows people to do "garf.RegForest" and get something useful
+RegForest = RegForest_D_D_AX
+RegTree = RegTree_D_D_AX
+RegNode = RegNode_D_D_AX
 
 
 @forest_func("any_invalid_numbers")
@@ -63,29 +19,11 @@ def _any_invalid_numbers(vals):
     return not np.all(np.isfinite(vals))
 
 
-# def _setattr_no_extra_attributes_allowed(self, attribute, value):
-#     """Assign this to the __setattr__ of an object to prevent any
-#     new attributes getting added. This is most useful for the classes
-#     which represent forest options, like if you misspell an option
-#     by doing forest_options.max_noum_trees instead of max_num_trees,
-#     this makes that become an error."""
-#     # Normally we would do 'if not attribute in self.__dict__'
-#     try:
-#         self.__getattribute__(attribute)
-#     except AttributeError:
-#         print "cannot set %s" % attribute
-#     self.
-#     if not attribute in self.__dict__:
-#         print "Cannot set %s" % attribute
-#     else:
-#         self.__dict__[attribute] = value
-
-
 @forest_func("l")
 def _log_wrapper(self, *args):
     """Allows objects to print stuff with a cool timestamp"""
-    print datetime.now().strftime('%Y%m%d:%H%M:')[2:],
-    print str(self) + ": ",
+    print datetime.now().strftime('%Y%m%d:%H%M:')[2:] + self.__str__(short=True, show_id=True) + ":",
+
     print ' '.join([str(a) for a in args])
 
 
@@ -97,7 +35,7 @@ def _train_wrapper(self, features, labels, debug=True):
     if _any_invalid_numbers(labels):
         raise ValueError('training labels contain NaN or infinity')
 
-    print "no invalid values detected at training"
+    self.l("training data appears valid")
 
     if len(features.shape) != 2:
         raise ValueError("features.shape must == 2")
@@ -193,7 +131,6 @@ def _feature_importance_wrapper(self, features, labels, importance_out=None):
     self._feature_importance(features, labels, importance_out)
     return importance_out.flatten()
 
-
 __default_max_depth = 10
 
 
@@ -201,7 +138,7 @@ __default_max_depth = 10
 @forest_func("all_trees")
 def _all_trees_wrapper(self):
     '''Return an iterator used to look through all the trees in a forest'''
-    if not self.is_trained:
+    if not self.trained:
         raise ValueError("forest not trained")
     for i in xrange(self.stats.num_trees):
         yield self.get_tree(i)
@@ -280,3 +217,47 @@ def _get_node_wrapper(self, node_id):
         # cache doesn't exist yet, so make it..
         self.make_node_cache()
         return self.node_lookup[node_id]
+
+
+# Print functions
+@forest_func("__str__")
+def _frst_str_wrapper(self, short=False, show_id=False):
+    classname = str(self.__class__)
+    dot_pos = classname.find(".")
+    end_quote_pos = classname.rfind("'")
+
+    classname = classname[(dot_pos + 1):end_quote_pos]
+
+    s = "[" + classname
+    if show_id:
+        s += ":" + str(id(self))
+    if short:
+        return s + "]"
+    if not self.trained:
+        return s + ":not trained]"
+
+    s += ":" + str(self.stats)
+
+    return s + "]"
+
+
+@tree_func("__str__")
+def _tree_str_wrapper(self):
+    c_name = str(self.__class__)
+    short_name = c_name[(c_name.find(".") + 1):c_name.rfind("'")]
+
+    s = "[" + short_name
+    s += ":#%d" % self.tree_id
+
+    return s + "]"
+
+
+@node_func("__str__")
+def _node_str_wrapper(self):
+    c_name = str(self.__class__)
+    short_name = c_name[(c_name.find(".") + 1):c_name.rfind("'")]
+
+    s = "[" + short_name
+    s += ":#%d" % self.id
+
+    return s + "]"

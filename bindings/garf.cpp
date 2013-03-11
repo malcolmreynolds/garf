@@ -68,7 +68,7 @@ BOOST_PYTHON_MODULE(_garf) {
     // a unqiue name for the class in python - we can't have all the different instantiations of the
     // template all just called "RegressionForest" unfortunately
     #define EXPOSE_FOREST_CLASSES(F, L, S, SF, FN, LN, SN) \
-    class_<RegressionForest<F, L, S, SF> >("RegressionForest" FN LN SN) \
+    class_<RegressionForest<F, L, S, SF> >("RegForest" FN LN SN) \
         .add_property("trained", &RegressionForest<F, L, S, SF>::is_trained) \
         .add_property("stats", make_function(&RegressionForest<F, L, S, SF>::stats, \
                                              return_internal_reference<>())) \
@@ -85,11 +85,11 @@ BOOST_PYTHON_MODULE(_garf) {
              return_value_policy<copy_const_reference>()) \
         .def("load_forest", &RegressionForest<F, L, S, SF>::load_forest) \
         .def("save_forest", &RegressionForest<F, L, S, SF>::save_forest); \
-    class_<RegressionTree<F, L, S, SF> >("RegressionTree" FN LN SN) \
+    class_<RegressionTree<F, L, S, SF> >("RegTree" FN LN SN) \
         .def_readonly("tree_id", &RegressionTree<F, L, S, SF>::tree_id) \
         .add_property("root", make_function(&RegressionTree<F, L, S, SF>::get_root, \
                                             return_value_policy<copy_const_reference>())); \
-    class_<RegressionNode<F, L, S, SF> >("RegressionNode" FN LN SN) \
+    class_<RegressionNode<F, L, S, SF> >("RegNode" FN LN SN) \
         .def_readonly("is_leaf", &RegressionNode<F, L, S, SF>::is_leaf) \
         .def_readonly("id", &RegressionNode<F, L, S, SF>::node_id) \
         .def_readonly("depth", &RegressionNode<F, L, S, SF>::depth) \
