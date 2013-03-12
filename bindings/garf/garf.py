@@ -1,6 +1,7 @@
 """Various crafty python bindings"""
 
 import numpy as np
+import time
 from datetime import datetime
 
 from _garf import *
@@ -27,20 +28,19 @@ def _log_wrapper(self, *args):
     print ' '.join([str(a) for a in args])
 
 
-# Fix up the forest training code, as we always seem to need to do this
 @forest_func("train")
-def _train_wrapper(self, features, labels, debug=True):
+def _train_wrapper(self, features, labels, debug=True, calc_importance=False):
     if _any_invalid_numbers(features):
         raise ValueError('training features contain NaN or infinity')
     if _any_invalid_numbers(labels):
         raise ValueError('training labels contain NaN or infinity')
 
-    self.l("training data appears valid")
-
     if len(features.shape) != 2:
         raise ValueError("features.shape must == 2")
     if len(labels.shape) != 2:
         raise ValueError("labels.shape must == 2")
+
+    self.l("training data appears valid")
 
     # Do type checking here - Boost.python not handling it for us any more
     if features.dtype != self._feat_type:
@@ -51,11 +51,27 @@ def _train_wrapper(self, features, labels, debug=True):
         self.l("casting labels to", self._label_type)
         labels = labels.astype(self._label_type)
 
+    self.l("starting training..")
+    start_time = time.clock()
     try:
         self._train(features, labels)
     except Exception as e:
         self.l(e)
         raise
+
+    elapsed_time = (time.clock() - start_time)
+    self.l("training done in %.3fs" % elapsed_time)
+
+    if calc_importance:
+        self.l("calculating feature importance")
+        start_time = time.clock()
+        self.importance_vec = self.feature_importance(features, labels)
+
+        elapsed_time = (time.clock() - start_time)
+        self.l("feature importance calculated and cached in %.3fs" % elapsed_time)
+
+        # We return the importance vector, but it is
+        return self.importance_vec
 
 
 @forest_func("check_array")
@@ -117,6 +133,12 @@ def _predict_wrapper(self, features, mean_out=None, var_out=None, leaves_out=Non
 def _feature_importance_wrapper(self, features, labels, importance_out=None):
     if not self.trained:
         raise ValueError("cannot calculate importance before forest trained")
+    try:
+        v = self.importance_vec
+        self.l("returning cached importance calculated at training time")
+        return v
+    except AttributeError:
+        self.l("importance not cached, calculating......")
 
     if _any_invalid_numbers(features):
         raise ValueError("training features contain NaN or infinity")
@@ -128,7 +150,14 @@ def _feature_importance_wrapper(self, features, labels, importance_out=None):
         importance_out = np.zeros((num_features, 1), dtype=self._importance_type)
     else:
         self.check_array(importance_out, (num_features, 1), self._importance_type)
+
+    start_time = time.clock()
     self._feature_importance(features, labels, importance_out)
+    end_time = (time.clock() - start_time)
+    self.l("importance computed in %.3fs" % end_time)
+
+    # Cache a copy
+    self.importance_vec = importance_out.flatten().copy()
     return importance_out.flatten()
 
 __default_max_depth = 10

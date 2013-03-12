@@ -17,7 +17,7 @@ def foo():
     print "features:\n", features
     print "labels:\n",  labels
 
-    rf.train(features, labels)
+    rf.train(features, labels, calc_importance=True)
     importances = rf.feature_importance(features, labels)
 
     pred_mu = np.zeros(labels.shape, dtype=labels.dtype)
