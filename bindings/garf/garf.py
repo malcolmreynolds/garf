@@ -160,6 +160,22 @@ def _feature_importance_wrapper(self, features, labels, importance_out=None):
     self.importance_vec = importance_out.flatten().copy()
     return importance_out.flatten()
 
+
+@forest_func("clear")
+def _clear_wrapper(self):
+    """The only thing the C++ doesn't take care of is deleting the importance
+    vector which will no longer be valid after retraining, so we delete it here
+    before passing onto the C++ clear function."""
+    try:
+        del self.importance_vec
+    except AttributeError:
+        # Doesn't matter, just means we hadn't calculated an importance result
+        pass
+
+    # Pass through to the C++ clearup
+    self._clear()
+
+
 __default_max_depth = 10
 
 
