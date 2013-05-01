@@ -74,6 +74,49 @@ def _train_wrapper(self, features, labels, debug=True, calc_importance=False):
         return self.importance_vec
 
 
+@forest_func("set_options")
+def _set_options_forest_wrapper(self, option_dict):
+    """Given a hierarchical options dict, set all the options in a forest
+
+    ie we should expect:
+
+    option_dict = {
+        'split_options': {
+            'num_splits_to_try': 50,
+            'threshes_per_split': 5,
+        },
+        'tree_options': {
+            'max_depth': 5,
+            'min_sample_count': 15,
+        },
+        'forest_options': {
+            'bagging': True,
+            'max_num_trees': 10,
+        },
+    }
+
+    Which will set the corresponding values in the split_options,
+    tree_options and forest_options (without modifying what is in
+    predict_options).
+    """
+
+    d_keys = ['tree_options', 'split_options',
+              'forest_options', 'predict_options']
+    opt_objs = [self.tree_options, self.split_options,
+                self.forest_options, self.predict_options]
+
+    for k in option_dict.keys():
+        if k not in d_keys:
+            raise ValueError('tried to set top level option group %s' % k)
+
+    for opts, d_key in zip(opt_objs, d_keys):
+        try:
+            opts.set_options(option_dict[d_key])
+        except KeyError:
+            # Just means user didn't supply any options for that option group
+            pass
+
+
 @forest_func("check_array")
 def _check_array(self, array, correct_shape, correct_dtype=None):
     """Check whether a provided array is of the correct shape &
@@ -306,3 +349,12 @@ def _node_str_wrapper(self):
     s += ":#%d" % self.id
 
     return s + "]"
+
+
+@opts_func("set_options")
+def _set_options_indiv_wrapper(self, opts_dict):
+    """Given a dict of string => value mappings, set the corresponding options"""
+    for k, v in opts_dict.items():
+        # print "setting %s (currently %s) = %s" % (k, self.__getattribute__(k), v)
+        self.__setattr__(k, v)
+        # print "done: now = %s" % self.__getattribute__(k)
