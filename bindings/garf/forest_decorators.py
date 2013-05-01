@@ -45,14 +45,18 @@ class node_func(GarfMultiFuncDecorator):
         self.py_binding_name = py_binding_name
 
 
-
-
 # We can also add print functions to stats, options classes, etc.
 # Technically the decorator isn't needed, as there is only one
 # (eg) stats class, but this keeps everything looking clean
 class stats_func(GarfMultiFuncDecorator):
     def __init__(self, py_binding_name):
         self.obj_list = [ForestStats]
+        self.py_binding_name = py_binding_name
+
+
+class opts_func(GarfMultiFuncDecorator):
+    def __init__(self, py_binding_name):
+        self.obj_list = object_list._all_options
         self.py_binding_name = py_binding_name
 
 
