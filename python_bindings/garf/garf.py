@@ -287,12 +287,38 @@ def _all_nodes_at_depth_wrapper(self, depth):
             nodes_to_visit.extend([n.l, n.r])
 
 
+@tree_func("do_preprocessing")
+def _do_preprocessing_wrapper(self):
+    """Do the stuff that we should do for a tree before
+    querying it about stuff."""
+    self.make_node_cache()
+    self.make_parent_lookup()
+
+
 @tree_func("make_node_cache")
 def _make_node_cache_wrapper(self):
     """Allows trees to access specific nodes by ID - builds a lookup dictionary"""
-    self.node_lookup = {}
+    self._node_lookup = {}
     for node in self.all_nodes():
-        self.node_lookup[node.id] = node
+        self._node_lookup[node.id] = node
+
+
+@tree_func("make_parent_lookup")
+def _make_parent_lookup_wrapper(self):
+    """builds a dict which points from each non-root node
+    to its parent. This, in conjunction with the node_lookup,
+    allows us to traverse the tree easily (ish)"""
+    self._parents = {}
+    nodes_to_visit = [self.root]
+
+    while nodes_to_visit:
+        n = nodes_to_visit.pop()
+        if n.is_leaf():
+            continue
+        nodes_to_visit.extend([n.l, n.r])
+        parent_id = n.node_id
+        self._parents[n.l.node_id] = parent_id
+        self._parents[n.r.node_id] = parent_id
 
 
 @tree_func("get_node")
@@ -300,11 +326,37 @@ def _get_node_wrapper(self, node_id):
     """get a node by node id. Builds a lookup cache the
     first time it's been called on a particular tree."""
     try:
-        return self.node_lookup[node_id]
+        return self._node_lookup[node_id]
     except AttributeError:
         # cache doesn't exist yet, so make it..
-        self.make_node_cache()
-        return self.node_lookup[node_id]
+        self.do_preprocessing()
+
+        return self._node_lookup[node_id]
+
+
+@tree_func("get_node_path")
+def _get_node_path_wrapper(self, node):
+    """Given a 'node', returns a list of all nodes
+    from root down to and including 'node'"""
+
+    lst = [node]
+
+    still_ascending = True
+
+    while still_ascending:
+        try:
+            parent = self.get_node(self._parents[lst[-1].node_id])
+            lst.append(parent)
+        except KeyError:
+            # node doesn't exist in self.parents, so must be root,
+            # therefore we are done.
+            still_ascending = False
+        except AttributeError:
+            # self.parents doesn't exist - lets do the required
+            # preprocessing
+            self.do_preprocessing()
+
+    return list(reverse(lst))
 
 
 # Print functions
