@@ -363,11 +363,13 @@ namespace garf {
         boost::shared_ptr<const feature_mtx<FeatT> > features(util::numpy_obj_to_eigen_copy<FeatT>(features_np));
         std::cout << "after conversion into eigen:" << std::endl
             << "features.shape = (" << features->rows() << "," << features->cols()
-            << "), contents = " << std::endl << *features << std::endl;
+            // << "), contents = " << std::endl << *features
+            << std::endl;
 
         boost::shared_ptr<const label_mtx<LabT> > labels(util::numpy_obj_to_eigen_copy<LabT>(labels_np));
         std::cout << "labels.shape = (" << labels->rows() << "," << labels->cols()
-            << "), contents = " << std::endl << *labels << std::endl;
+            // << "), contents = " << std::endl << *labels
+            << std::endl;
 
         train(*features, *labels);
     }
