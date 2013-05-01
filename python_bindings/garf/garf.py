@@ -313,7 +313,7 @@ def _make_parent_lookup_wrapper(self):
 
     while nodes_to_visit:
         n = nodes_to_visit.pop()
-        if n.is_leaf():
+        if n.is_leaf:
             continue
         nodes_to_visit.extend([n.l, n.r])
         parent_id = n.node_id
