@@ -316,9 +316,9 @@ def _make_parent_lookup_wrapper(self):
         if n.is_leaf:
             continue
         nodes_to_visit.extend([n.l, n.r])
-        parent_id = n.node_id
-        self._parents[n.l.node_id] = parent_id
-        self._parents[n.r.node_id] = parent_id
+        parent_id = n.id
+        self._parents[n.l.id] = parent_id
+        self._parents[n.r.id] = parent_id
 
 
 @tree_func("get_node")
@@ -345,7 +345,7 @@ def _get_node_path_wrapper(self, node):
 
     while still_ascending:
         try:
-            parent = self.get_node(self._parents[lst[-1].node_id])
+            parent = self.get_node(self._parents[lst[-1].id])
             lst.append(parent)
         except KeyError:
             # node doesn't exist in self.parents, so must be root,
@@ -356,7 +356,7 @@ def _get_node_path_wrapper(self, node):
             # preprocessing
             self.do_preprocessing()
 
-    return list(reverse(lst))
+    return list(reversed(lst))
 
 
 # Print functions
