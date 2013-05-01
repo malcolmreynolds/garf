@@ -303,9 +303,10 @@ namespace garf {
 #endif
     };
 }
+
 // Need to include all the implementation here or else the compiler can't access
 // the declarations (compiling the .cpp files produces object files which don't 
-// really have anything inside).
+// really have anything inside). Oh, C++, when will you learn.
 #include "regression_forest.cpp"
 #include "regression_tree.cpp"
 #include "regression_node.cpp"

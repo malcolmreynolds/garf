@@ -9,6 +9,7 @@ objs/
 bin/
 *.prof
 .sconsign.dblite
+*.forest
 
 tests/reg_test
 tests/shared_test
