@@ -84,8 +84,7 @@ namespace garf {
 
         num_going_left = num_going_right = 0;
 
-        // return evaluate_quality_of_each_split(parent_data_indices, num_in_parent,
-        //                                       left_child_indices_out, right_child_indices_out);
+        double inf_gain;
 
         for (split_idx_t split_idx = 0; split_idx < split_opts.num_splits_to_try; split_idx++) {
             for (split_idx_t thresh_idx = 0; thresh_idx < split_opts.threshes_per_split; thresh_idx++) {
@@ -107,9 +106,13 @@ namespace garf {
                     << num_going_right << " going right: [" << samples_going_right.head(num_going_right).transpose() << "]" << std::endl;
 #endif
                 if ((num_going_left == 0) || (num_going_right == 0)) {
-
-                    // check_split_thresholds();
-
+                    // this could just happen when we have only a few bits of data, combined with bagging this
+                    // happens reasonably often deep in the tree. If data is same / similar there could easily
+                    // be constant features where the min/max is the same, and therefore all the thresholds
+                    // will be the same. In this case the split values will all go left (just because
+                    // left is defined as <= the split) - this is not really something to worry about. I'm turning
+                    // off the printing because it interferes with concurrency.
+#ifdef VERBOSE                    
                     std::cout << "feature values = " << this->candidate_feature_values.topRows(num_in_parent) << std::endl;
 
                     for (datapoint_idx_t i = 0; i < num_in_parent; i++) {
@@ -117,8 +120,6 @@ namespace garf {
                             << all_features.row(parent_data_indices(i)) << std::endl;
                     }
 
-
-                    // this is a bit weird - figure out why it happened
                     std::cout << "split #" << split_idx << " thresh #" << thresh_idx << " = " << this->split_thresholds(split_idx, thresh_idx);
                     std::cout << ", feature range is [" << this->min_feature_values(split_idx) << "," << this->max_feature_values(split_idx);
                     std::cout << "], candidate split directions = ";
@@ -131,25 +132,33 @@ namespace garf {
                     }
                     std::cout << " " << num_going_left << " going left: [" << this->samples_going_left.head(num_going_left).transpose() << "] : "
                         << num_going_right << " going right: [" << this->samples_going_right.head(num_going_right).transpose() << "]" << std::endl;
+#endif
 
+                    // we are here we can't do the gaussian fitting. Just indicate that this split sucks
+                    // with the minimum information gain.
+                    inf_gain = -std::numeric_limits<LabT>::infinity();
+
+                } else {
+
+                    // We can only fit the gaussians if we have some amount of data on each side of the split
+                    // Now work out the information gain. First fit gaussians
+                    this->left_child_dist.fit_params(all_labels, this->samples_going_left, num_going_left);
+                    this->right_child_dist.fit_params(all_labels, this->samples_going_right, num_going_right);
+#ifdef VERBOSE
+                    std::cout << "P" << num_in_parent << parent_dist
+                        << " L" << num_going_left << this->left_child_dist
+                        << " R" << num_going_right << this->right_child_dist << " ";
+#endif
+
+                    inf_gain = information_gain(parent_dist, this->left_child_dist, this->right_child_dist,
+                                                       num_in_parent, num_going_left, num_going_right);
+#ifdef VERBOSE
+                    std::cout << "igain: " << inf_gain << std::endl << std::endl;
+#endif
                 }
 
-                // Now work out the information gain. First fit gaussians
-                this->left_child_dist.fit_params(all_labels, this->samples_going_left, num_going_left);
-                this->right_child_dist.fit_params(all_labels, this->samples_going_right, num_going_right);
-#ifdef VERBOSE
-                std::cout << "P" << num_in_parent << parent_dist
-                    << " L" << num_going_left << this->left_child_dist
-                    << " R" << num_going_right << this->right_child_dist << " ";
-#endif
-
-                double inf_gain = information_gain(parent_dist, this->left_child_dist, this->right_child_dist,
-                                                   num_in_parent, num_going_left, num_going_right);
-#ifdef VERBOSE
-                std::cout << "igain: " << inf_gain << std::endl << std::endl;
-#endif
-
-                // FIXME: also test if this is a decent split at this point
+                // If the split was rubbish (ie zero datapoints on one or the other side)
+                // then the inf_gain will be -inf and hopefully that should sort this out. I hope.
                 if ((inf_gain > this->best_inf_gain)
                     && this->is_admissible_split(num_going_left, num_going_right)) {
                     
