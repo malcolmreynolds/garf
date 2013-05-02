@@ -162,9 +162,9 @@ namespace garf {
     // Clears everything in the forest, ie forgets all the training
     template<typename FeatT, typename LabT, template<typename> class SplitT, template<typename, typename> class SplFitterT>
     void RegressionForest<FeatT, LabT, SplitT, SplFitterT>::clear() {
-        if (!trained) {
-            throw std::logic_error("cannot clear a forest which isn't trained!");
-        }
+        // if (!trained) {
+        //     throw std::logic_error("cannot clear a forest which isn't trained!");
+        // }
         std::cout << "clearing forest of " << forest_stats.num_trees << " trees." << std::endl;
         trees.reset();
         forest_stats.num_trees = 0;
