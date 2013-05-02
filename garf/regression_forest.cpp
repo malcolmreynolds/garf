@@ -127,7 +127,7 @@ namespace garf {
         std::cout << "training using TBB" << std::endl;
         // FIXME! Work out how to actually work out the number of
         // threads TBB will use, rather than guess
-        parallel_for(blocked_range<tree_idx_t>(0, forest_options.max_num_trees, 5),
+        parallel_for(blocked_range<tree_idx_t>(0, forest_options.max_num_trees, 2),
                      concurrent_tree_trainer<FeatT, LabT, SplitT, SplFitterT>(trees, features, labels, *this));
 #else
         // Create a RNG which we will need for picking the bagging indices, plus the uniform distribution
