@@ -39,7 +39,7 @@ namespace garf {
         std::ofstream ofs(filename);
         boost::archive::text_oarchive oa(ofs);
         oa << *this;
-        std::cout << "forest saved to " << filename << std::endl;
+        // std::cout << "forest saved to " << filename << std::endl;
     }
 
     // Load a forest from disk into the forest this is called on. Note, this will
@@ -51,7 +51,7 @@ namespace garf {
         std::ifstream ifs(filename);
         boost::archive::text_iarchive ia(ifs);
         ia >> *this;
-        std::cout << "forest loaded from " << filename << std::endl;
+        // std::cout << "forest loaded from " << filename << std::endl;
     }
 
     // Alternate constructor which loads from a filename straight away
