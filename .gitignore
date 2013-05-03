@@ -15,4 +15,4 @@ tests/reg_test
 tests/shared_test
 tests/test
 
-bindings/build
+python_bindings/build
