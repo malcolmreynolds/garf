@@ -344,8 +344,13 @@ def _get_node_path_wrapper(self, node):
     still_ascending = True
 
     while still_ascending:
+        # Get the ID here rather than in the try block. This means
+        # if we are passed something that isn't a node, then the attributeError
+        # we get here is passed out to the caller of get_node_path, rather
+        # than triggering an infinite loop below
+        node_id = lst[-1].id
         try:
-            parent = self.get_node(self._parents[lst[-1].id])
+            parent = self.get_node(self._parents[node_id])
             lst.append(parent)
         except KeyError:
             # node doesn't exist in self.parents, so must be root,
@@ -410,3 +415,23 @@ def _set_options_indiv_wrapper(self, opts_dict):
         # print "setting %s (currently %s) = %s" % (k, self.__getattribute__(k), v)
         self.__setattr__(k, v)
         # print "done: now = %s" % self.__getattribute__(k)
+
+
+class set_predict_opts(object):
+    """Allows us to set forest prediction options in a with
+    block and restore the previous settings afterwards"""
+    def __init__(self, forest, maximum_depth, **pred_args):
+        self.forest = forest
+        self.temporary_maximum_depth = maximum_depth
+        if pred_args != {}:
+            raise ValueError('no optinos apart from maximum depth supported yet')
+
+    def __enter__(self):
+        """Save all the predict options set at the moment so we
+        can restore them afterwards"""
+        # Save the old value and set the new one
+        self.old_maximum_depth = forest.predict_options.maximum_depth
+        forest.predict_options.maximum_depth = self.temporary_maximum_depth
+
+    def __exit__(self, type, value, traceback):
+        forest.predict_options.maximum_depth = self.old_maximum_depth
