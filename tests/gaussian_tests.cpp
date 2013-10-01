@@ -24,7 +24,7 @@ TEST(MDGTest, FixedSize) {
     std::cout << "first random data: " << std::endl << data << std::endl;
 
 
-    garf::MultiDimGaussianX<double> mdg(3);
+    garf::util::MultiDimGaussianX<double> mdg(3);
 
     mdg.fit_params(data);
 
@@ -40,7 +40,7 @@ TEST(MDGTest, VariableSize) {
     MatrixXd data(4, 3);
     data.setRandom();
 
-    garf::MultiDimGaussianX<double> mdgx(3);
+    garf::util::MultiDimGaussianX<double> mdgx(3);
 
     // LOG(INFO)
     std::cout << "second random data: " << std::endl << data << std::endl;

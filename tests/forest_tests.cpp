@@ -140,6 +140,7 @@ void test_forest_with_data(forest_ax_align & forest,
 
     for (uint64_t i = 0; i < num_test_datapoints; i++) {
         for (uint64_t j = 0; j < label_dims; j++) {
+            std::cout << "(i, j) = (" << i << "," << j << ")" << std::endl;
             EXPECT_NEAR(predicted_labels(i, j), test_labels(i, j), answer_tolerance);
         }
     }
@@ -153,8 +154,8 @@ TEST(ForestTest, RegTest1) {
     forest.tree_options.max_depth = 6;
     forest.tree_options.min_sample_count = 2;
 
-    uint64_t num_train_datapoints = 10;
-    uint64_t num_test_datapoints = 2;
+    uint64_t num_train_datapoints = 200;
+    uint64_t num_test_datapoints = 40;
     uint64_t data_dims = 2;
     uint64_t label_dims = 1;
     double data_scaler = 2.0;
