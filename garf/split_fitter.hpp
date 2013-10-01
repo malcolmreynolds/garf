@@ -106,10 +106,15 @@ namespace garf {
                 if (seed_value == NULL) {
                     throw std::logic_error("using proper randomness, but no random seed provided");
                 }
-                print_mutex.lock();
-                std::cout << this << ": seeding RNG with proper randomness" << std::endl;   // << seed_value << std::endl;
-                print_mutex.unlock();
+                // print_mutex.lock();
+                // std::cout << this << ": seeding RNG with proper randomness" << std::endl;   // << seed_value << std::endl;
+                // print_mutex.unlock();
                 rng.seed(*seed_value);
+            } else {
+                print_mutex.lock();
+                std::cout << this << ": WARNING not using real randomness" << std::endl;
+                print_mutex.unlock();
+
             }
         };
     };
