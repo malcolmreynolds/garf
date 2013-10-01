@@ -1,34 +1,22 @@
-CXX=clang++
-# Flags passed to the C++ compiler.
-CXXFLAGS += -O3 -g -Wall -Wextra -std=c++0x -stdlib=libc++ -ferror-limit=3 
+# User specific configuration here
+EIGEN_INC_DIR = /usr/local/include/eigen3
 
+# Must point to gtest library direction which contains the include/ subdirectory
+GTEST_DIR = /Users/malc/opt/gtest  
+
+CXX=clang++
+CXXFLAGS += -O3 -g -Wall -Wextra -std=c++0x -stdlib=libc++ -ferror-limit=3 -Wno-unused-parameter 
+LDFLAGS += -stdlib=libc++ -lboost_serialization-mt  -ltbb
+TEST_LDFLAGS +=  -lpthread
 
 # Eigen
-CXXFLAGS += -I/usr/local/include/eigen3  -Wno-unused-parameter -I/opt/include/
-
+CXXFLAGS += -I$(EIGEN_INC_DIR)  
 
 # Google Test stuff - taken from the gtest sample1 makefile
-GTEST_DIR = /Users/malc/opt/gtest
 CPPFLAGS += -I$(GTEST_DIR)/include
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
 GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
-
-# # Pantheios stuff
-# PAN_LDFLAGS = -lpantheios.1.core.gcc42 \
-#               -lpantheios.1.be.fprintf.gcc42 \
-#               -lpantheios.1.bec.fprintf.gcc42 \
-#               -lpantheios.1.util.gcc42 \
-#               -lpantheios.1.fe.N.gcc42 \
-#               -L/opt/lib
-
-# Log4cplus
-LDFLAGS += -llog4cplus
-
-# Google logging
-CPPFLAGS += -I/opt/include
-LDFLAGS += -stdlib=libc++ -lboost_serialization-mt  -ltbb
-TEST_LDFLAGS +=  -lpthread
 
  
 
@@ -39,12 +27,8 @@ all : gtest $(TESTS)
 clean :
 	rm -rf objs/*.o bin/*
 
-
-
 REG_FRST_HDRS = garf/*.hpp garf/util/*.hpp
 REG_FRST_SRC = garf/*.cpp garf/*.hpp garf/splits/*.cpp garf/util/*.hpp
-
-
 
 # For simplicity and to avoid depending on Google Test's
 # implementation details, the dependencies specified below are
@@ -63,14 +47,6 @@ bin/gtest_main.a : objs/gtest-all.o objs/gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
 gtest : bin/gtest_main.a bin/gtest.a
-
-
-# objs/regression_forest.o : garf/regression_forest.cpp garf/regression_forest.hpp
-# 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c garf/regression_forest.cpp -o $@
-# objs/regression_tree.o : garf/regression_tree.cpp garf/regression_forest.hpp
-# 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c garf/regression_tree.cpp -o $@
-# objs/regression_node.o : garf/regression_node.cpp garf/regression_forest.hpp
-# 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c garf/regression_node.cpp -o $@
 
 
 
