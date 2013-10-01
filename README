@@ -1,0 +1,62 @@
+GARF - A Regression Random Forest Library
+
+Version 0.1
+
+GARF is a C++ library for training and testing Regression Random Forest
+models, popularised in Machine Learning and Computer Vision since their
+invention in 2001 by Leo Breiman. Various implementations are available
+(OpenCV, Scikit-learn) but for reasons including wanting more control over
+the types of features that can be chosen, wanting the highest performance
+possible, and just generally wanting to get my hands dirty, I wrote my own.
+
+I've been using this in my research for nearly the past year, and while I
+wouldn't claim it is anything other than alpha software, it's worked pretty
+reliably for me.
+
+Features:
+* Parallelisation with Intel Thread Building Blocks
+* Serialization (save and load trained forests) with Boost.Serialize
+* Python interface with Boost.Python
+
+Requirements:
+* C++ 11 compiler. I generate my random numbers using the new C++ 11
+  classes so this is a hard requirement. I use clang++ 4.2 with libc++
+  on OS X 10.8.3 - I imagine it will be mediumly easy to compile this
+  code on Linux, mediumly hard on Windows.
+* Intel Thread Building Blocks - I used 4.1u3.
+  https://www.threadingbuildingblocks.org/
+* Eigen headers (required internally for all vectors & matrices).
+  I used version 3.2.0
+* Boost for smart pointers, Python, serialisation & parallelisation.
+  I used 1.54.0 - note that the compiled parts (such as Python)
+  need to be compiled in C++11 mode or you are liable to get weird
+  linking areas. If you're using Homebrew on a Mac to install boost 
+  make sure you use the --with-c++11 flag.
+* Google Test API if you want to compile the included (admittedly not
+  that extensive) unit tests
+* Python 2.7 (previous versions may work..) with Numpy for the python
+  integration
+
+To use GARF as a C++ library use the Makefile and tests/forest_test.cpp
+as guidelines. Better documentations and examples TBC!
+
+
+Python instructions:
+
+1. Change paths if necessary in python_bindings/setup.py to point to where your
+   Boost, TBB and Eigen are installed. Eigen only needs to be
+   in the include directories, Boost and TBB have to be in the include
+   and library directories.
+2. From a terminal inside python_bindings/setup.py
+	$ python setup.py build
+	$ python setup.py install
+   You may need sudo for the instal command, depending on your python setup.
+
+3. See tests/python_example.py for a simple example of usage.
+
+
+This code will be hosted for the foreseeable at https://github.com/malcolmreynolds/garf
+- should you use it for anything I would love to hear about it. Patches / PRs
+even more welcome.
+
+
